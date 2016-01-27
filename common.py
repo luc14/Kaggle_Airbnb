@@ -1,10 +1,4 @@
-import pandas as pd
-import numpy as np
-import collections
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import log_loss, accuracy_score
-from sklearn.cross_validation import cross_val_score
-
+from typical_imports import * 
 pd.set_option('display.width', 0)
 
 def evaluate(learner, X, y):

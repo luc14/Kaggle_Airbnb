@@ -1,12 +1,10 @@
 import pandas as pd
 import numpy as np
 import collections
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import log_loss, accuracy_score
-from sklearn.cross_validation import cross_val_score
 import sys
 sys.path.append('..')
 import common
+from typical_imports import *
 
 info_str = '''id: skip
 date_account_created: date
