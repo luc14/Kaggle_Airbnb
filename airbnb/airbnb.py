@@ -6,7 +6,7 @@ sys.path.append('..')
 import common
 from typical_imports import *
 
-info_str = '''id: skip
+info_str = '''id: id
 date_account_created: date
 timestamp_first_active: date 
 date_first_booking: skip
@@ -24,12 +24,12 @@ first_browser: c
 country_destination: target
 '''    
 
-X, y = common.prepare_data('data/train_users_2.csv', info_str)
-#print( X, '\n', y, file = open('out.txt','w') )
+X, y, X_test = common.prepare_data('data/train_users_2.csv','data/test_users.csv', info_str)
 
 logreg = LogisticRegression(random_state=1)
 #logreg_score = common.evaluate(logreg, X, y)
 logreg.fit(X, y)
 
-prob = logreg.predict_proba(X)
-print(prob)
+prob = logreg.predict_proba(X_test)
+print( X, y, X_test, prob, file = open('out.txt','w'), sep= '\n' )
+

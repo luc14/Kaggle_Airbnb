@@ -7,10 +7,13 @@ def evaluate(learner, X, y):
     print(result)
     return result
 
-def prepare_data(filename, info_str):
+def prepare_data(train_filename, test_filename, info_str):
     info_dict = read_info_str(info_str)
-    data = pd.read_csv(filename, parse_dates= info_dict['date'])
+    train_data = pd.read_csv(train_filename, parse_dates= info_dict['date'])
+    test_data = pd.read_csv(test_filename, parse_dates= info_dict['date'])
+    data = pd.concat([train_data, test_data], ignore_index=True)
     
+    data.index = data[info_dict['id'][0]]
     for column in info_dict['date']:
         data[column+'_month'] = data[column].dt.month
         info_dict['c'].append(column+'_month')
@@ -28,11 +31,16 @@ def prepare_data(filename, info_str):
         data[column] = pd.cut(data[column], bins_)
         
     data = pd.get_dummies(data,columns=info_dict['c']) 
+    
+    
     assert len(info_dict['target'])==1
     y = data[info_dict['target'][0]]
-    data.drop(info_dict['skip']+info_dict['date']+info_dict['target'], axis=1, inplace=True)
-    X = data
-    return X, y
+    y_train = y[:train_data.shape[0]]
+    data.drop(info_dict['skip']+info_dict['date']+info_dict['target']+info_dict['id'], axis=1, inplace=True)
+    X_train = data.iloc[:train_data.shape[0]]
+    X_test = data.iloc[train_data.shape[0]:]
+    
+    return X_train, y_train, X_test
 
 def read_info_str(info_str):
     info_dict = collections.defaultdict(list)
