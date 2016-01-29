@@ -10,9 +10,10 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, Gradien
 from sklearn.metrics import log_loss, accuracy_score
 from sklearn.model_selection import cross_val_score, train_test_split, ParameterGrid, RandomizedSearchCV, GridSearchCV
 from sklearn.neural_network import MLPClassifier
-#from xgboost import XGBClassifier
+from sklearn.dummy import DummyClassifier
+from xgboost import XGBClassifier
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, FunctionTransformer, LabelBinarizer, LabelEncoder
 from sklearn.utils import shuffle
 import math, platform, time, warnings, os, traceback, sys, datetime, collections, argparse, io, random
 #from multiprocessing import Pool
-#from patsy import dmatrix
+from patsy import dmatrix

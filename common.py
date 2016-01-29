@@ -1,11 +1,22 @@
 from typical_imports import * 
 pd.set_option('display.width', 0)
+warnings.filterwarnings('ignore')
 
-def evaluate(learner, X, y):
+def evaluate(learner_lst, X, y):
     evaluation_metrics = ['accuracy', 'log_loss']
-    result = {i: cross_val_score(learner, X, y, scoring=i, cv=3).mean() for i in evaluation_metrics}
-    print(result)
-    return result
+    results = {}
+    for learner in learner_lst:
+        try:
+            result = {}
+            for metric in evaluation_metrics:
+                cv = cross_val_score(learner, X, y, scoring=metric, cv=3)
+                result[metric + 'mean'] = cv.mean()
+                result[metric + 'std'] = cv.std()
+            results[learner.__class__.__name__] = result
+        except:
+            print(learner, 'failed')
+    results_df = pd.DataFrame(results)
+    return results_df
 
 def prepare_data(train_filename, test_filename, info_str):
     info_dict = read_info_str(info_str)
