@@ -3,18 +3,23 @@ pd.set_option('display.width', 0)
 warnings.filterwarnings('ignore')
 
 def evaluate(learner_lst, X, y):
-    evaluation_metrics = ['accuracy', 'log_loss']
+    evaluation_metrics = ['accuracy', 'log_loss', ndcg]
     results = {}
     for learner in learner_lst:
-        try:
-            result = {}
-            for metric in evaluation_metrics:
-                cv = cross_val_score(learner, X, y, scoring=metric, cv=3)
-                result[metric + 'mean'] = cv.mean()
-                result[metric + 'std'] = cv.std()
-            results[learner.__class__.__name__] = result
-        except:
-            print(learner, 'failed')
+        #try:
+        result = {}
+        for metric in evaluation_metrics:
+            cv = cross_val_score(learner, X, y, scoring=metric, cv=3)
+            if type(metric) == str:
+                metric_name = metric
+            else:
+                metric_name = metric.__name__
+            result[metric_name + 'mean'] = cv.mean()
+            result[metric_name + 'std'] = cv.std()
+        results[learner.__class__.__name__] = result
+        #except Exception as e:
+            #print(traceback.format_exc())
+            #print(learner, 'failed')
     results_df = pd.DataFrame(results)
     return results_df
 
@@ -68,3 +73,17 @@ def read_info_str(info_str):
                 info_dict[tag].append(column)
     return info_dict
 
+
+def ndcg(learner, X, y):
+    countries = learner.classes_
+    prob = learner.predict_proba(X)
+    data = pd.DataFrame.from_records(prob, index=X.index, columns = countries) 
+    score = 0
+    for user_id in data.index:
+        top_countries  = sorted(countries, key = lambda country: data.loc[user_id,country],reverse=True)[:5]   
+        for i in range(5):
+            if top_countries[i] == y.loc[user_id]:
+                score += 1/(math.log2(i+2))
+    ave = score/len(y)           
+    return ave 
+    
