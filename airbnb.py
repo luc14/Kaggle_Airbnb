@@ -24,13 +24,19 @@ country_destination: target
 '''    
 
 def main():
-    if len(sys.argv) > 1:
-        #arg = sys.argv[1]
+    #options = collections.defaultdict(lambda: False)
+    options = collections.defaultdict(bool)
+    for arg in sys.argv[1:]:
+        options[arg] = True
+        
+        
+    if options['small']:
         folder = 'airbnb/data/small_'
     else:
         folder = 'airbnb/data/'
+        
     
-    X, y, X_test = common.prepare_data(folder + 'train_users_2.csv', folder + 'test_users.csv', info_str)
+    X, y, X_test = common.prepare_data(folder + 'train_users_2.csv', folder + 'test_users.csv', info_str, options)
 
     logreg = LogisticRegression(random_state=1)
     #logreg.fit(X, y)

@@ -4,21 +4,22 @@ warnings.filterwarnings('ignore')
 
 def evaluate(learner_lst, X, y):
     evaluation_metrics = [accuracy_scorer, log_loss_scorer, ndcg]
+    #evaluation_metrics = [ndcg]
     results = {}
     for learner in learner_lst:
         print(learner, flush=True)
         learner.fit(X, y)        
-        #try:
-        result = {}
-        for metric in evaluation_metrics:
-            cv = cross_val_score(learner, X, y, scoring=metric, cv=3)
-            result[str(metric) + 'mean'] = cv.mean()
-            result[str(metric) + 'std'] = cv.std()
-            result[str(metric) + 'training error'] = metric(learner, X, y)
-        results[learner.__class__.__name__] = result
-        #except Exception as e:
-            #print(traceback.format_exc())
-            #print(learner, 'failed')
+        try:
+            result = {}
+            for metric in evaluation_metrics:
+                cv = cross_val_score(learner, X, y, scoring=metric, cv=3)
+                result[str(metric) + 'mean'] = cv.mean()
+                result[str(metric) + 'std'] = cv.std()
+                result[str(metric) + 'training error'] = metric(learner, X, y)
+            results[learner.__class__.__name__] = result
+        except Exception as e:
+            print(traceback.format_exc())
+            print(learner, 'failed')
     results_df = pd.DataFrame(results)
     return results_df
 
@@ -32,7 +33,7 @@ def prepare_data(train_filename, test_filename, info_str):
     for column in info_dict['date']:
         data[column+'_month'] = data[column].dt.month
         info_dict['c'].append(column+'_month')
-        data[column+'_year'] = data[column].dt.year
+        data[column+'_year'] = (data[column].dt.year - 2010)/4
         #data[column+'_dayofyear'] = data[column].dt.dayofyear
         data[column+'_hour'] = data[column].dt.hour // 6 
         info_dict['c'].append(column+'_hour')
