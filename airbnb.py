@@ -75,3 +75,14 @@ def prepare_submission_file(learner, X_test, filename):
 if __name__ == '__main__':
     main()  
     
+'''
+
+              DummyClassifier  LogisticRegression  MLPClassifier
+accuracymean         0.583473            0.609953       0.531126
+accuracystd          0.000022            0.007191       0.038225
+log_lossmean        -1.163060           -1.116772      -1.389046
+log_lossstd          0.000149            0.019170       0.227440
+ndcgmean             0.806765            0.816308       0.763464
+ndcgstd              0.000027            0.002626       0.007731
+
+'''

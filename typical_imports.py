@@ -8,6 +8,7 @@ from sklearn.tree import ExtraTreeClassifier, DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
 from sklearn.metrics import log_loss, accuracy_score
+from sklearn.metrics.scorer import log_loss_scorer, accuracy_scorer
 from sklearn.model_selection import cross_val_score, train_test_split, ParameterGrid, RandomizedSearchCV, GridSearchCV
 from sklearn.neural_network import MLPClassifier
 from sklearn.dummy import DummyClassifier

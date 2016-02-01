@@ -3,19 +3,18 @@ pd.set_option('display.width', 0)
 warnings.filterwarnings('ignore')
 
 def evaluate(learner_lst, X, y):
-    evaluation_metrics = ['accuracy', 'log_loss', ndcg]
+    evaluation_metrics = [accuracy_scorer, log_loss_scorer, ndcg]
     results = {}
     for learner in learner_lst:
+        print(learner, flush=True)
+        learner.fit(X, y)        
         #try:
         result = {}
         for metric in evaluation_metrics:
             cv = cross_val_score(learner, X, y, scoring=metric, cv=3)
-            if type(metric) == str:
-                metric_name = metric
-            else:
-                metric_name = metric.__name__
-            result[metric_name + 'mean'] = cv.mean()
-            result[metric_name + 'std'] = cv.std()
+            result[str(metric) + 'mean'] = cv.mean()
+            result[str(metric) + 'std'] = cv.std()
+            result[str(metric) + 'training error'] = metric(learner, X, y)
         results[learner.__class__.__name__] = result
         #except Exception as e:
             #print(traceback.format_exc())
