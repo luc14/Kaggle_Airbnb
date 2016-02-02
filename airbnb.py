@@ -36,8 +36,13 @@ def main():
         folder = 'airbnb/data/'
         
     
-    X, y, X_test = common.prepare_data(folder + 'train_users_2.csv', folder + 'test_users.csv', info_str, options)
+    X, y, X_test = common.prepare_data(folder + 'train_users_2.csv', folder + 'test_users.csv', folder + 'sessions.csv', info_str, options)
 
+    scaler = StandardScaler()
+    scaler.fit(X)
+    X = scaler.transform(X)
+    X_test = scaler.transform(X_test)
+    
     logreg = LogisticRegression(random_state=1)
     #logreg.fit(X, y)
     

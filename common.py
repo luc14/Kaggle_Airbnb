@@ -12,7 +12,7 @@ def evaluate(learner_lst, X, y):
         try:
             result = {}
             for metric in evaluation_metrics:
-                cv = cross_val_score(learner, X, y, scoring=metric, cv=3)
+                cv = cross_val_score(learner, X, y, scoring=metric, cv=3, n_jobs=-1)
                 result[str(metric) + 'mean'] = cv.mean()
                 result[str(metric) + 'std'] = cv.std()
                 result[str(metric) + 'training error'] = metric(learner, X, y)
@@ -23,17 +23,29 @@ def evaluate(learner_lst, X, y):
     results_df = pd.DataFrame(results)
     return results_df
 
-def prepare_data(train_filename, test_filename, info_str):
+def prepare_counts(filename, com_lst = ['action', 'action_type', 'action_detail']):
+    data = pd.read_csv(filename)
+    data.fillna('nan', inplace = True)
+    data['combination'] = data[com_lst].apply(lambda x: tuple(x), axis=1)    
+    df = pd.crosstab(data['user_id'], data['combination'])
+    return df
+
+def prepare_data(train_filename, test_filename, data_counts_filename, info_str, options):
     info_dict = read_info_str(info_str)
     train_data = pd.read_csv(train_filename, parse_dates= info_dict['date'])
     test_data = pd.read_csv(test_filename, parse_dates= info_dict['date'])
     data = pd.concat([train_data, test_data], ignore_index=True)
-    
     data.index = data[info_dict['id'][0]]
+    
+    data_counts = prepare_counts(data_counts_filename)
+    data = pd.concat([data, data_counts], axis= 1, join= 'inner')
+    
+    
     for column in info_dict['date']:
         data[column+'_month'] = data[column].dt.month
         info_dict['c'].append(column+'_month')
-        data[column+'_year'] = (data[column].dt.year - 2010)/4
+        if options['year']:
+            data[column+'_year'] = data[column].dt.year
         #data[column+'_dayofyear'] = data[column].dt.dayofyear
         data[column+'_hour'] = data[column].dt.hour // 6 
         info_dict['c'].append(column+'_hour')
