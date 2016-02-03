@@ -40,9 +40,9 @@ def main():
 
     scaler = StandardScaler()
     scaler.fit(X)
-    X = scaler.transform(X)
-    X_test = scaler.transform(X_test)
-    
+    X = pd.DataFrame.from_records(scaler.transform(X), index=X.index, columns= X.columns)    
+    X_test = pd.DataFrame.from_records(scaler.transform(X_test), index=X_test.index, columns= X_test.columns)
+       
     logreg = LogisticRegression(random_state=1)
     #logreg.fit(X, y)
     
@@ -63,6 +63,7 @@ def main():
         #nn.set_params(**nn_params)
         #print(common.evaluate([nn], X, y)) 
         
+    print(X, y, file = open('Xy', 'w'))   
     print(common.evaluate([dummy, logreg, nn], X, y))#, file = open('evaluation', 'w'))
     #prepare_submission_file(logreg, X_test, 'submission.csv')
 

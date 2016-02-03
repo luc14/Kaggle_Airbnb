@@ -12,7 +12,7 @@ def evaluate(learner_lst, X, y):
         try:
             result = {}
             for metric in evaluation_metrics:
-                cv = cross_val_score(learner, X, y, scoring=metric, cv=3, n_jobs=-1)
+                cv = cross_val_score(learner, X, y, scoring=metric, cv=3)
                 result[str(metric) + 'mean'] = cv.mean()
                 result[str(metric) + 'std'] = cv.std()
                 result[str(metric) + 'training error'] = metric(learner, X, y)
@@ -63,10 +63,11 @@ def prepare_data(train_filename, test_filename, data_counts_filename, info_str, 
     
     assert len(info_dict['target'])==1
     y = data[info_dict['target'][0]]
-    y_train = y[:train_data.shape[0]]
+    y_train = y[~y.isnull()]
+    
     data.drop(info_dict['skip']+info_dict['date']+info_dict['target']+info_dict['id'], axis=1, inplace=True)
-    X_train = data.iloc[:train_data.shape[0]]
-    X_test = data.iloc[train_data.shape[0]:]
+    X_train = data[~y.isnull()]
+    X_test = data[y.isnull()]
     
     return X_train, y_train, X_test
 
