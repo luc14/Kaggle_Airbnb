@@ -24,7 +24,7 @@ country_destination: target
 '''    
 
 def main():
-    print('starting the program \n\n')
+    print('starting the program: \n\n')
     
     #options = collections.defaultdict(lambda: False)
     options = collections.defaultdict(bool)
@@ -36,9 +36,16 @@ def main():
         folder = 'airbnb/data/small_'
     else:
         folder = 'airbnb/data/'
+            
+    if options['session']:
+        sessions = pd.read_csv(folder + 'sessions.csv')
+        com_lst = ['action', 'action_type', 'action_detail']
+        sessions['new_feature'] = sessions[com_lst].apply(lambda x: tuple(x), axis=1)
+        extra_features = common.prepare_counts(sessions, 'new_feature', 'user_id')
+    else:
+        extra_features = None
         
-    
-    X, y, X_test = common.prepare_data(folder + 'train_users_2.csv', folder + 'test_users.csv', folder + 'sessions.csv', info_str, options)
+    X, y, X_test = common.prepare_data(folder + 'train_users_2.csv', folder + 'test_users.csv', extra_features, info_str, options)
 
     scaler = StandardScaler()
     scaler.fit(X)
@@ -65,12 +72,12 @@ def main():
         #nn.set_params(**nn_params)
         #print(common.evaluate([nn], X, y)) 
         
-    file = create_filename('airbnb')
+    file = common.create_filename('airbnb')
     print(info_str, file = file)
     print('training data size:', X.shape, file = file)
-    print('time:', now, file = file)
+    print('time:', datetime.datetime.now(), file = file)
     print('arguments:',  sys.argv, file = file)
-    print(common.evaluate([dummy, logreg, nn], X, y), file = file)
+    print(common.evaluate([dummy], X, y, options), file = file)
     file.close()
     #prepare_submission_file(logreg, X_test, 'submission.csv')
 

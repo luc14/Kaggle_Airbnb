@@ -2,7 +2,11 @@ from typical_imports import *
 pd.set_option('display.width', 0)
 warnings.filterwarnings('ignore')
 
-def evaluate(learner_lst, X, y):
+def evaluate(learner_lst, X, y, options):
+    if options['parallel']:
+        n_jobs = -1
+    else:
+        n_jobs = 1
     evaluation_metrics = [accuracy_scorer, log_loss_scorer, ndcg]
     #evaluation_metrics = [ndcg]
     results = {}
@@ -12,7 +16,7 @@ def evaluate(learner_lst, X, y):
         try:
             result = {}
             for metric in evaluation_metrics:
-                cv = cross_val_score(learner, X, y, scoring=metric, cv=3)
+                cv = cross_val_score(learner, X, y, scoring=metric, cv=3, n_jobs= n_jobs)
                 result[str(metric) + 'mean'] = cv.mean()
                 result[str(metric) + 'std'] = cv.std()
                 result[str(metric) + 'training error'] = metric(learner, X, y)
@@ -23,24 +27,26 @@ def evaluate(learner_lst, X, y):
     results_df = pd.DataFrame(results)
     return results_df
 
-def prepare_counts(filename, com_lst = ['action', 'action_type', 'action_detail']):
-    data = pd.read_csv(filename)
+def prepare_counts(data, features, key):
+    #data = pd.read_csv(filename)
     data.fillna('nan', inplace = True)
-    data['combination'] = data[com_lst].apply(lambda x: tuple(x), axis=1)    
-    df = pd.crosstab(data['user_id'], data['combination'])
+    df = pd.crosstab(data[key], data[features])
     return df
 
-def prepare_data(train_filename, test_filename, data_counts_filename, info_str, options):
+def prepare_data(train_filename, test_filename, extra_features , info_str, options):
     info_dict = read_info_str(info_str)
     train_data = pd.read_csv(train_filename, parse_dates= info_dict['date'])
     test_data = pd.read_csv(test_filename, parse_dates= info_dict['date'])
+    
+    # combine test data and train data
     data = pd.concat([train_data, test_data], ignore_index=True)
     data.index = data[info_dict['id'][0]]
     
-    data_counts = prepare_counts(data_counts_filename)
-    data = pd.concat([data, data_counts], axis= 1, join= 'inner')
+    # combine extra features together
+    if extra_features is not None:
+        data = pd.concat([data, extra_features], axis= 1, join= 'inner')
     
-    
+    # separate information from date format into either 'c' or continuous variables 
     for column in info_dict['date']:
         data[column+'_month'] = data[column].dt.month
         info_dict['c'].append(column+'_month')
@@ -50,21 +56,25 @@ def prepare_data(train_filename, test_filename, data_counts_filename, info_str, 
         data[column+'_hour'] = data[column].dt.hour // 6 
         info_dict['c'].append(column+'_hour')
     
+    # cut data into the range of [min_, max_]
     for column, arg in info_dict['r']:
         min_, max_ = map(int, arg)
         data.loc[(data[column]<min_) | (data[column]>max_), column] = None
     
+    #cut data into (bins_)'s groups
     for column, arg in info_dict['b']:
         bins_ = int(arg[0])
         data[column] = pd.cut(data[column], bins_)
-        
+    
+    #transform data in 'c' into categorical formats
     data = pd.get_dummies(data,columns=info_dict['c']) 
     
-    
+    #store target values in y_train
     assert len(info_dict['target'])==1
     y = data[info_dict['target'][0]]
     y_train = y[~y.isnull()]
     
+    #store features into X_train and X_test
     data.drop(info_dict['skip']+info_dict['date']+info_dict['target']+info_dict['id'], axis=1, inplace=True)
     X_train = data[~y.isnull()]
     X_test = data[y.isnull()]
