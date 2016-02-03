@@ -24,6 +24,8 @@ country_destination: target
 '''    
 
 def main():
+    print('starting the program \n\n')
+    
     #options = collections.defaultdict(lambda: False)
     options = collections.defaultdict(bool)
     for arg in sys.argv[1:]:
@@ -63,10 +65,14 @@ def main():
         #nn.set_params(**nn_params)
         #print(common.evaluate([nn], X, y)) 
         
-    print(X, y, file = open('Xy', 'w'))   
-    print(common.evaluate([dummy, logreg, nn], X, y))#, file = open('evaluation', 'w'))
+    file = create_filename('airbnb')
+    print(info_str, file = file)
+    print('training data size:', X.shape, file = file)
+    print('time:', now, file = file)
+    print('arguments:',  sys.argv, file = file)
+    print(common.evaluate([dummy, logreg, nn], X, y), file = file)
+    file.close()
     #prepare_submission_file(logreg, X_test, 'submission.csv')
-
 
 
 def prepare_submission_file(learner, X_test, filename):

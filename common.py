@@ -99,4 +99,21 @@ def ndcg(learner, X, y):
                 score += 1/(math.log2(i+2))
     ave = score/len(y)           
     return ave 
+
     
+def create_filename(prefix):    
+    now = datetime.datetime.now()
+    file_date = now.strftime('%Y%m%d%H%M%S')
+    lst_names = os.listdir()
+    max_num = 0
+    for name in lst_names:
+        name_digit = re.search('^' +prefix + r'(\d+)_.*\.txt$', name)
+        if name_digit is None:
+            continue
+        digit = int(name_digit.group(1))
+        if digit > max_num:
+            max_num = digit
+            
+    file_name = prefix + str(max_num + 1)+ '_' + file_date + '.txt'
+    file = open(file_name, 'w')
+    return file
