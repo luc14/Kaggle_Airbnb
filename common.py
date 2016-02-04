@@ -2,31 +2,55 @@ from typical_imports import *
 pd.set_option('display.width', 0)
 warnings.filterwarnings('ignore')
 
-def evaluate(learner_lst, X, y, options):
+def evaluate(learner, X, y, evaluation_metrics, options):
     if options['parallel']:
         n_jobs = -1
     else:
         n_jobs = 1
-    evaluation_metrics = [accuracy_scorer, log_loss_scorer, ndcg]
-    #evaluation_metrics = [ndcg]
-    results = {}
-    for learner in learner_lst:
-        print(learner, flush=True)
-        learner.fit(X, y)        
-        try:
-            result = {}
-            for metric in evaluation_metrics:
+    print(learner, flush=True)
+    learner.fit(X, y)
+    try:
+        result = {}
+        for name, metric in evaluation_metrics:
+            if not options['nocv']:
                 cv = cross_val_score(learner, X, y, scoring=metric, cv=3, n_jobs= n_jobs)
-                result[str(metric) + 'mean'] = cv.mean()
-                result[str(metric) + 'std'] = cv.std()
-                result[str(metric) + 'training error'] = metric(learner, X, y)
-            results[learner.__class__.__name__] = result
-        except Exception as e:
-            print(traceback.format_exc())
-            print(learner, 'failed')
-    results_df = pd.DataFrame(results)
-    return results_df
+                result[name + ' cv mean'] = cv.mean()
+                result[name + ' cv std'] = cv.std()
+            result[name + ' train'] = metric(learner, X, y)
+    except Exception as e:
+        print(traceback.format_exc())
+        print(learner, 'failed')
+    #results_df = pd.DataFrame(results)
+    return result
 
+def evaluate_learners(learner_lst, X, y, evaluation_metrics, options):
+    records = []
+    column_order = collections.defaultdict(lambda: 100)    
+    for learner in learner_lst:
+        record = evaluate(learner, X, y, evaluation_metrics, options)
+        for key in record:
+            column_order[key] = 1        
+        params = learner.get_params()
+        record.update(params)
+        record['learner'] = learner.__class__.__name__
+        records.append(record)
+    column_order['learner'] = 0
+    
+    df = pd.DataFrame(records)
+    columns = sorted(df.columns, key= lambda x: column_order[x])
+    df = df[columns]
+    return df
+
+def combine_info(new_info, file_name):
+    try:
+        summary = pd.read_csv(file_name, index_col= 0, sep='\t')
+    except:
+        summary = pd.DataFrame()
+    data = pd.concat([summary, new_info], ignore_index=True, axis = 0)
+    columns = list(new_info.columns) + list(data.columns - new_info.columns)
+    data = data[columns] 
+    print( data.to_csv(sep='\t'), file = open(file_name, 'w'))
+    
 def prepare_counts(data, features, key):
     #data = pd.read_csv(filename)
     data.fillna('nan', inplace = True)
@@ -100,7 +124,7 @@ def read_info_str(info_str):
 def ndcg(learner, X, y):
     countries = learner.classes_
     prob = learner.predict_proba(X)
-    data = pd.DataFrame.from_records(prob, index=X.index, columns = countries) 
+    data = pd.DataFrame(prob, index=X.index, columns = countries) 
     score = 0
     for user_id in data.index:
         top_countries  = sorted(countries, key = lambda country: data.loc[user_id,country],reverse=True)[:5]   
@@ -127,3 +151,9 @@ def create_filename(prefix):
     file_name = prefix + str(max_num + 1)+ '_' + file_date + '.txt'
     file = open(file_name, 'w')
     return file
+
+def git_version():
+    from subprocess import Popen, PIPE
+    gitproc = Popen(['git', 'rev-parse','HEAD'], stdout = PIPE)
+    (stdout, _) = gitproc.communicate()
+    return stdout.strip()

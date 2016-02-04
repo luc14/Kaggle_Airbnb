@@ -46,11 +46,12 @@ def main():
         extra_features = None
         
     X, y, X_test = common.prepare_data(folder + 'train_users_2.csv', folder + 'test_users.csv', extra_features, info_str, options)
-
-    scaler = StandardScaler()
-    scaler.fit(X)
-    X = pd.DataFrame.from_records(scaler.transform(X), index=X.index, columns= X.columns)    
-    X_test = pd.DataFrame.from_records(scaler.transform(X_test), index=X_test.index, columns= X_test.columns)
+    
+    if options['scale']:
+        scaler = StandardScaler()
+        scaler.fit(X)
+        X = pd.DataFrame.from_records(scaler.transform(X), index=X.index, columns= X.columns)    
+        X_test = pd.DataFrame.from_records(scaler.transform(X_test), index=X_test.index, columns= X_test.columns)
        
     logreg = LogisticRegression(random_state=1)
     #logreg.fit(X, y)
@@ -72,12 +73,15 @@ def main():
         #nn.set_params(**nn_params)
         #print(common.evaluate([nn], X, y)) 
         
+    evaluation_metrics = [('acc', accuracy_scorer), ('logloss', log_loss_scorer), ('ndcg', common.ndcg)]
     file = common.create_filename('airbnb')
     print(info_str, file = file)
     print('training data size:', X.shape, file = file)
     print('time:', datetime.datetime.now(), file = file)
     print('arguments:',  sys.argv, file = file)
-    print(common.evaluate([dummy], X, y, options), file = file)
+    new_info = common.evaluate_learners([dummy, logreg, nn], X, y, evaluation_metrics, options)
+    print(new_info, file = file)
+    common.combine_info(new_info, file_name = 'summary.txt')
     file.close()
     #prepare_submission_file(logreg, X_test, 'submission.csv')
 
