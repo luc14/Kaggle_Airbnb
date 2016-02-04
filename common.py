@@ -21,7 +21,7 @@ def evaluate(learner, X, y, evaluation_metrics, options):
         print(traceback.format_exc())
         print(learner, 'failed')
     #results_df = pd.DataFrame(results)
-    return result
+    return result #dict
 
 def evaluate_learners(learner_lst, X, y, evaluation_metrics, options):
     records = []
@@ -29,13 +29,15 @@ def evaluate_learners(learner_lst, X, y, evaluation_metrics, options):
     for learner in learner_lst:
         record = evaluate(learner, X, y, evaluation_metrics, options)
         for key in record:
-            column_order[key] = 1        
+            column_order[key] = 1 
+        record.update(options) 
         params = learner.get_params()
         record.update(params)
         record['learner'] = learner.__class__.__name__
         records.append(record)
     column_order['learner'] = 0
-    
+    for option in options:
+        column_order[option] = 2
     df = pd.DataFrame(records)
     columns = sorted(df.columns, key= lambda x: column_order[x])
     df = df[columns]
