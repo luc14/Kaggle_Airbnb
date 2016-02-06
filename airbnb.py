@@ -45,7 +45,7 @@ def main():
     else:
         extra_features = None
         
-    X, y, X_test = common.prepare_data(folder + 'train_users_2.csv', folder + 'test_users.csv', extra_features, info_str, options)
+    X, y, X_test = common.prepare_data(folder + 'train_users_2.csv', folder + 'test_users.csv', extra_features, info_str, options)        
     
     if options['scale']:
         scaler = StandardScaler()
@@ -58,20 +58,6 @@ def main():
     
     dummy = DummyClassifier(strategy= 'prior')
     nn = MLPClassifier()
-    
-    
-    #param_dict = {'batch_size': [100, 200], 'momentum': [0.9, 0.99], 'learning_rate_init':[0.001, 0.01, 0.1]}
-    #param_dict = {'batch_size': [200], 'momentum': [0.9], 'learning_rate_init':[0.1]}
-    #for param in ParameterGrid(param_dict):       
-        #nn = MLPClassifier(algorithm='sgd', 
-                           #tol=float('-inf'),
-                           #warm_start = True,
-                           #max_iter=1, 
-                           #hidden_layer_sizes = [200])
-        #nn_params = nn.get_params()
-        #nn_params.update(param)
-        #nn.set_params(**nn_params)
-        #print(common.evaluate([nn], X, y)) 
         
     evaluation_metrics = [('acc', accuracy_scorer), ('logloss', log_loss_scorer), ('ndcg', common.ndcg)]
     file = common.create_filename('airbnb')
@@ -79,11 +65,19 @@ def main():
     print('training data size:', X.shape, file = file)
     print('time:', datetime.datetime.now(), file = file)
     print('arguments:',  sys.argv, file = file)
-    new_info = common.evaluate_learners([dummy, logreg, nn], X, y, evaluation_metrics, options)
+    all_learners = {
+        'dummy':dummy, 
+        'logreg': logreg,
+        'nn': nn,
+    }
+    learner_lst = [all_learners[learner] for learner in all_learners if options[learner]]
+    new_info = common.evaluate_learners(learner_lst, X, y, evaluation_metrics, options)
     print(new_info, file = file)
     common.combine_info(new_info, file_name = 'summary.txt')
     file.close()
-    #prepare_submission_file(logreg, X_test, 'submission.csv')
+    if options['submission']:
+        submission_file = common.create_filename('submission')        
+        prepare_submission_file(logreg, X_test, file = submission_file)
 
 
 def prepare_submission_file(learner, X_test, filename):

@@ -62,6 +62,7 @@ def prepare_counts(data, features, key):
 def prepare_data(train_filename, test_filename, extra_features , info_str, options):
     info_dict = read_info_str(info_str)
     train_data = pd.read_csv(train_filename, parse_dates= info_dict['date'])
+            
     test_data = pd.read_csv(test_filename, parse_dates= info_dict['date'])
     
     # combine test data and train data
@@ -71,7 +72,11 @@ def prepare_data(train_filename, test_filename, extra_features , info_str, optio
     # combine extra features together
     if extra_features is not None:
         data = pd.concat([data, extra_features], axis= 1, join= 'inner')
-    
+    if options['shuffle']:
+        data = shuffle(data, random_state = 1)
+    else:
+        data = data.sort_values('timestamp_first_active', axis = 0)
+            
     # separate information from date format into either 'c' or continuous variables 
     for column in info_dict['date']:
         data[column+'_month'] = data[column].dt.month
