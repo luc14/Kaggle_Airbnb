@@ -1,5 +1,8 @@
 from typical_imports import * 
 pd.set_option('display.width', 0)
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_seq_items', None)
 warnings.filterwarnings('ignore')
 
 def evaluate(learner, X, y, evaluation_metrics, options):
@@ -72,6 +75,7 @@ def prepare_data(train_filename, test_filename, extra_features , info_str, optio
     # combine extra features together
     if extra_features is not None:
         data = pd.concat([data, extra_features], axis= 1, join= 'inner')
+        
     if options['shuffle']:
         data = shuffle(data, random_state = 1)
     else:

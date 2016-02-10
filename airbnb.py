@@ -80,12 +80,12 @@ def main():
         prepare_submission_file(logreg, X_test, file = submission_file)
 
 
-def prepare_submission_file(learner, X_test, filename):
+def prepare_submission_file(learner, X_test, file):
 #def output_result(prob, index_id, countries):
     countries = learner.classes_
     prob = learner.predict_proba(X_test)
     data = pd.DataFrame.from_records(prob, index=X_test.index, columns = countries)
-    file = open(filename,'w')
+    #file = open(filename,'w')
     print('id,country', file = file)
     for user_id in data.index:
         top_countries  = sorted(countries, key = lambda country: data.loc[user_id,country],reverse=True)[:5]
