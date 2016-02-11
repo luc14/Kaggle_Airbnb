@@ -62,12 +62,8 @@ def prepare_counts(data, features, key):
     df = pd.crosstab(data[key], data[features])
     return df
 
-def prepare_data(train_filename, test_filename, extra_features , info_str, options):
-    info_dict = read_info_str(info_str)
-    train_data = pd.read_csv(train_filename, parse_dates= info_dict['date'])
-            
-    test_data = pd.read_csv(test_filename, parse_dates= info_dict['date'])
-    
+def prepare_data(train_data, test_data, extra_features , info_dict, options):
+ 
     # combine test data and train data
     data = pd.concat([train_data, test_data], ignore_index=True)
     data.index = data[info_dict['id'][0]]
@@ -110,7 +106,7 @@ def prepare_data(train_filename, test_filename, extra_features , info_str, optio
     y_train = y[~y.isnull()]
     
     #store features into X_train and X_test
-    data.drop(info_dict['skip']+info_dict['date']+info_dict['target']+info_dict['id'], axis=1, inplace=True)
+    data.drop(info_dict['skip']+info_dict['target']+info_dict['id']+ info_dict['date'], axis=1, inplace=True)
     X_train = data[~y.isnull()]
     X_test = data[y.isnull()]
     

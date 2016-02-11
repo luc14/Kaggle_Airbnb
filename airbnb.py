@@ -6,7 +6,7 @@ import common
 from typical_imports import *
 
 info_str = '''id: id
-date_account_created: date
+date_account_created: skip
 timestamp_first_active: date 
 date_first_booking: skip
 gender: c
@@ -26,6 +26,8 @@ country_destination: target
 def main():
     print('starting the program: \n\n')
     
+    
+    
     #options = collections.defaultdict(lambda: False)
     options = collections.defaultdict(bool)
     for arg in sys.argv[1:]:
@@ -39,13 +41,23 @@ def main():
             
     if options['session']:
         sessions = pd.read_csv(folder + 'sessions.csv')
-        com_lst = ['action', 'action_type', 'action_detail']
-        sessions['new_feature'] = sessions[com_lst].apply(lambda x: tuple(x), axis=1)
-        extra_features = common.prepare_counts(sessions, 'new_feature', 'user_id')
+        #com_lst = ['action', 'action_type', 'action_detail']
+        #sessions['new_feature'] = sessions[com_lst].apply(lambda x: tuple(x), axis=1)
+        extra_features = common.prepare_counts(sessions, 'action', 'user_id')
     else:
         extra_features = None
         
-    X, y, X_test = common.prepare_data(folder + 'train_users_2.csv', folder + 'test_users.csv', extra_features, info_str, options)        
+    info_dict = common.read_info_str(info_str)
+    train_data = pd.read_csv(folder + 'train_users_2.csv', parse_dates= info_dict['date'])
+    test_data = pd.read_csv(folder + 'test_users.csv', parse_dates= info_dict['date'])            
+        
+    X_recent, y_recent, X_test_sessions = common.prepare_data( train_data, test_data, extra_features, info_dict, options)        
+    X_full, y_full, X_test = common.prepare_data(train_data, test_data, None, info_dict, options) 
+    
+    train_indicator = pd.Series(1, index = X_full.index)
+    train_indicator=train_indicator[X_full['timestamp_first_active'].dt.year != 2014 or X_full['timestamp_first_active'].dt.year.month <=3]
+    X_full_train = pd.concat([train_indicator, X_full], axis = 1, join= 'inner')
+    X_full_train = pd.concat([train_indicator, X_full], axis = 1, join= 'inner') # take care of y's
     
     if options['scale']:
         scaler = StandardScaler()
