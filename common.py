@@ -62,21 +62,35 @@ def prepare_counts(data, features, key):
     df = pd.crosstab(data[key], data[features])
     return df
 
-def prepare_data(train_data, test_data, extra_features , info_dict, options):
- 
-    # combine test data and train data
-    data = pd.concat([train_data, test_data], ignore_index=True)
-    data.index = data[info_dict['id'][0]]
+#info_dict = {'age': {'range': ['10','80'], 'bins': ['5'], 'cat': []}}
+
+def read_info_str(info_str):
+    '''
+    return info_dict
     
-    # combine extra features together
-    if extra_features is not None:
-        data = pd.concat([data, extra_features], axis= 1, join= 'inner')
-        
-    if options['shuffle']:
-        data = shuffle(data, random_state = 1)
-    else:
-        data = data.sort_values('timestamp_first_active', axis = 0)
+    >>> d=read_info_str('age: range, 10, 80; bins, 5; cat')
+    >>> d['age']['range']
+    ['10', '80']
+    >>> d['age']['cat'] 
+    []
+    '''
+    
+    info_dict = collections.OrderedDict()
+    for item in info_str.splitlines(): # item = 'age: range, 10, 80; bins, 5' / item = 'gender: cat'
+        column, tags = item.split(':') # column = 'age' ,    tags = ' range, 10, 80; bins, 5' / column = 'gender', tags = 'cat'
+        info_dict[column] =  collections.OrderedDict()
+        for tag in tags.split(';'): # tag = ' range, 10, 80' /  
+            tag = tag.strip() # get rid of white space (new line charactert, tab, space)
+            tag_lst = [ tag_arg.strip() for tag_arg in tag.split(',')] # tag_lst = ['range', '10', '80'] / tag_lst = ['cat']
+            tag = tag_lst[0] # tag = 'range'  
+            arg = tag_lst[1:] # arg = ['10', '80'] 
+            # info_dict['age'] = {'range': ['10', '80'], 'bins': ['5']} 
+            info_dict[column][tag] = arg
             
+    return info_dict
+
+def transform_features(info_dict, data):
+    
     # separate information from date format into either 'c' or continuous variables 
     for column in info_dict['date']:
         data[column+'_month'] = data[column].dt.month
@@ -100,6 +114,25 @@ def prepare_data(train_data, test_data, extra_features , info_dict, options):
     #transform data in 'c' into categorical formats
     data = pd.get_dummies(data,columns=info_dict['c']) 
     
+    
+    return tranformed_data
+
+def prepare_data(train_data, test_data, extra_features , info_dict, options):
+ 
+    # combine test data and train data
+    data = pd.concat([train_data, test_data], ignore_index=True)
+    data.index = data[info_dict['id'][0]]
+    
+    # combine extra features together
+    if extra_features is not None:
+        data = pd.concat([data, extra_features], axis= 1, join= 'inner')
+        
+    if options['shuffle']:
+        data = shuffle(data, random_state = 1)
+    else:
+        data = data.sort_values('timestamp_first_active', axis = 0)
+            
+    
     #store target values in y_train
     assert len(info_dict['target'])==1
     y = data[info_dict['target'][0]]
@@ -111,21 +144,6 @@ def prepare_data(train_data, test_data, extra_features , info_dict, options):
     X_test = data[y.isnull()]
     
     return X_train, y_train, X_test
-
-def read_info_str(info_str):
-    info_dict = collections.defaultdict(list)
-    for item in info_str.splitlines():
-        column, tags = item.split(':')
-        for tag in tags.split('|'):
-            tag = tag.strip()
-            tag_lst = tag.split()
-            if len(tag_lst) > 1:
-                tag = tag_lst[0]
-                arg = tag_lst[1:]
-                info_dict[tag].append([column,arg])
-            else:
-                info_dict[tag].append(column)
-    return info_dict
 
 
 def ndcg(learner, X, y):

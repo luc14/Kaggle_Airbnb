@@ -5,25 +5,50 @@ import sys
 import common
 from typical_imports import *
 
+
+'''
+age: range, 10, 80; bins, 5; cat
+
+now
+info_dict is a dict of lists of lists
+
+info_dict['range'] = [['age', [10,80]], ['anotherage', [20,30]], 'abc': []]
+
+you can make
+info_dict is a dict of dict with outside keys = tags
+
+info_dict['range'] = {'age': [10,80], 'anotherage': [20,30], 'abc': []}
+
+
+or a dict of dicts with outside keys = columns
+if you use ordereddict, you can choose the order inside info_str
+info_dict = {'age': {'range': [10,80], 'bins': [5], 'cat': []}, 'age1': {'bins': [5], 'range': [10,80], 'cat': []}}
+
+
+'''
+
 info_str = '''id: id
 date_account_created: skip
 timestamp_first_active: date 
 date_first_booking: skip
-gender: c
-age: r 10 80 | b 5 | c
-signup_method: c
-signup_flow: c
-language: c
-affiliate_channel: c
-affiliate_provider: c
-first_affiliate_tracked: c
-signup_app: c
-first_device_type: c
-first_browser: c
+gender: cat
+age: range, 10, 80; bins, 5; cat
+signup_method: cat
+signup_flow: cat
+language: cat
+affiliate_channel: cat
+affiliate_provider: cat
+first_affiliate_tracked: cat
+signup_app: cat
+first_device_type: cat
+first_browser: cat
 country_destination: target
 '''    
-
 def main():
+    pass
+
+
+def main1():
     print('starting the program: \n\n')
     
     
