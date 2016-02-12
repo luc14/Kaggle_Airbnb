@@ -29,7 +29,7 @@ info_dict = {'age': {'range': [10,80], 'bins': [5], 'cat': []}, 'age1': {'bins':
 
 info_str = '''id: id
 date_account_created: skip
-timestamp_first_active: date 
+timestamp_first_active: date, %Y%m%d%H%M%S, dayofyear
 date_first_booking: skip
 gender: cat
 age: range, 10, 80; bins, 5; cat
@@ -45,9 +45,10 @@ first_browser: cat
 country_destination: target
 '''    
 def main():
-    pass
-
-
+    data = pd.read_csv('airbnb/data/reduced_train_users_2.csv')
+    result = common.transform_features(common.read_info_str(info_str), data)
+    print (result, file = open('test1', 'w'))
+    
 def main1():
     print('starting the program: \n\n')
     

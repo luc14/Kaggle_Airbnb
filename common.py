@@ -62,8 +62,6 @@ def prepare_counts(data, features, key):
     df = pd.crosstab(data[key], data[features])
     return df
 
-#info_dict = {'age': {'range': ['10','80'], 'bins': ['5'], 'cat': []}}
-
 def read_info_str(info_str):
     '''
     return info_dict
@@ -89,39 +87,47 @@ def read_info_str(info_str):
             
     return info_dict
 
+#info_dict = {'age': {'range': ['10','80'], 'bins': ['5'], 'cat': []}, }
+
+
 def transform_features(info_dict, data):
     
-    # separate information from date format into either 'c' or continuous variables 
-    for column in info_dict['date']:
-        data[column+'_month'] = data[column].dt.month
-        info_dict['c'].append(column+'_month')
-        if options['year']:
-            data[column+'_year'] = data[column].dt.year
-        #data[column+'_dayofyear'] = data[column].dt.dayofyear
-        data[column+'_hour'] = data[column].dt.hour // 6 
-        info_dict['c'].append(column+'_hour')
     
-    # cut data into the range of [min_, max_]
-    for column, arg in info_dict['r']:
-        min_, max_ = map(int, arg)
-        data.loc[(data[column]<min_) | (data[column]>max_), column] = None
-    
-    #cut data into (bins_)'s groups
-    for column, arg in info_dict['b']:
-        bins_ = int(arg[0])
-        data[column] = pd.cut(data[column], bins_)
-    
-    #transform data in 'c' into categorical formats
-    data = pd.get_dummies(data,columns=info_dict['c']) 
-    
-    
-    return tranformed_data
+    for column in info_dict:
+        for tag, arg_lst in info_dict[column].items():
+            
+            if tag == 'id':
+                data.index = data[column]
+                data.drop(column, axis=1, inplace=True)
+            
+            if tag == 'date':
+                data[column] = pd.to_datetime( data[column], format = arg_lst[0] )
+                for arg in arg_lst[1:]:
+                    data[column + '_' + arg] = getattr(data[column].dt, arg)
+                
+            # cut data into the range of [min_, max_]
+            if tag == 'range':
+                min_, max_ = map(int, arg_lst)
+                data.loc[(data[column]<min_) | (data[column]>max_), column] = None
+            
+            #cut data into (bins_)'s groups
+            if tag == 'bins':
+                bins_ = int(arg_lst[0])
+                data[column] = pd.cut(data[column], bins_) 
+            
+            #convert data in 'c' into categorical formats     
+            if tag == 'cat':
+                data = pd.get_dummies(data, columns = [column], dummy_na = True)
+                
+            if tag == 'skip':
+                data.drop(column, axis=1, inplace=True)
+        
+    return data
 
 def prepare_data(train_data, test_data, extra_features , info_dict, options):
  
     # combine test data and train data
     data = pd.concat([train_data, test_data], ignore_index=True)
-    data.index = data[info_dict['id'][0]]
     
     # combine extra features together
     if extra_features is not None:
@@ -139,7 +145,7 @@ def prepare_data(train_data, test_data, extra_features , info_dict, options):
     y_train = y[~y.isnull()]
     
     #store features into X_train and X_test
-    data.drop(info_dict['skip']+info_dict['target']+info_dict['id']+ info_dict['date'], axis=1, inplace=True)
+    
     X_train = data[~y.isnull()]
     X_test = data[y.isnull()]
     
