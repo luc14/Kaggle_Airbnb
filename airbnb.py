@@ -45,14 +45,7 @@ first_browser: cat
 country_destination: target
 '''    
 def main():
-    data = pd.read_csv('airbnb/data/reduced_train_users_2.csv')
-    result = common.transform_features(common.read_info_str(info_str), data)
-    print (result, file = open('test1', 'w'))
-    
-def main1():
     print('starting the program: \n\n')
-    
-    
     
     #options = collections.defaultdict(lambda: False)
     options = collections.defaultdict(bool)
