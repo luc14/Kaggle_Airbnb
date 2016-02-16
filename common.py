@@ -5,7 +5,7 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.max_seq_items', None)
 warnings.filterwarnings('ignore')
 
-def evaluate(learner, X, y, evaluation_metrics, options):
+def evaluate(learner, X, y, evaluation_metrics, cv, options):
     if options['parallel']:
         n_jobs = -1
     else:
@@ -16,9 +16,9 @@ def evaluate(learner, X, y, evaluation_metrics, options):
     result = {}
     for name, metric in evaluation_metrics:
         if not options['nocv']:
-            cv = cross_val_score(learner, X, y, scoring=metric, cv=3, n_jobs= n_jobs)
-            result[name + ' cv mean'] = cv.mean()
-            result[name + ' cv std'] = cv.std()
+            score = cross_val_score(learner, X, y, scoring=metric, cv=cv, n_jobs= n_jobs)
+            result[name + ' cv mean'] = score.mean()
+            result[name + ' cv std'] = score.std()
         result[name + ' train'] = metric(learner, X, y)
 #except Exception as e:
         #print(traceback.format_exc())
@@ -26,11 +26,11 @@ def evaluate(learner, X, y, evaluation_metrics, options):
     #results_df = pd.DataFrame(results)
     return result #dict
 
-def evaluate_learners(learner_lst, X, y, evaluation_metrics, options):
+def evaluate_learners(learner_lst, X, y, evaluation_metrics, cv, options):
     records = []
     column_order = collections.defaultdict(lambda: 100)    
     for learner in learner_lst:
-        record = evaluate(learner, X, y, evaluation_metrics, options)
+        record = evaluate(learner, X, y, evaluation_metrics, cv, options)
         for key in record:
             column_order[key] = 1 
         record.update(options) 
@@ -133,17 +133,21 @@ def transform_features(info_dict, data):
         
     return data
 
-def split(data, target_column, fraction, condition = lambda row: True ):
+
+#, fraction, condition = lambda row: True 
+def split(data, target_column):
     # info_dict = {'country_destination': {'target': }}
-    test_index = data[target_column].isnull()
-    test_data = data.loc[test_index]
-    train_data = data.loc[~test_index]
-    validation_index = train_data.apply(condition, axis = 1)
-    validation_data = train_data.loc[validation_index]
-    validation_data = validation_data.sample(frac = fraction)
-    train_data = train_data.drop(validation_data.index)
+    y = data[target_column]
+    test_index = y.isnull()
+    data = data.drop(target_column, axis = 1)
+    test_X = data.loc[test_index]
+    train_X = data.loc[~test_index]
+    train_y = y[~test_index]
+    #validation_index = train_data.apply(condition, axis = 1)
+    #validation_data = train_data.loc[validation_index]
+    #validation_data = validation_data.sample(frac = fraction)
     
-    return test_data, train_data, validation_data
+    return test_X, train_X, train_y
 
 def prepare_data(train_data, test_data, extra_features , info_dict, options):
  
