@@ -12,17 +12,17 @@ def evaluate(learner, X, y, evaluation_metrics, options):
         n_jobs = 1
     print(learner, flush=True)
     learner.fit(X, y)
-    try:
-        result = {}
-        for name, metric in evaluation_metrics:
-            if not options['nocv']:
-                cv = cross_val_score(learner, X, y, scoring=metric, cv=3, n_jobs= n_jobs)
-                result[name + ' cv mean'] = cv.mean()
-                result[name + ' cv std'] = cv.std()
-            result[name + ' train'] = metric(learner, X, y)
-    except Exception as e:
-        print(traceback.format_exc())
-        print(learner, 'failed')
+#    try:
+    result = {}
+    for name, metric in evaluation_metrics:
+        if not options['nocv']:
+            cv = cross_val_score(learner, X, y, scoring=metric, cv=3, n_jobs= n_jobs)
+            result[name + ' cv mean'] = cv.mean()
+            result[name + ' cv std'] = cv.std()
+        result[name + ' train'] = metric(learner, X, y)
+#except Exception as e:
+        #print(traceback.format_exc())
+        #print(learner, 'failed')
     #results_df = pd.DataFrame(results)
     return result #dict
 
@@ -71,6 +71,12 @@ def read_info_str(info_str):
     ['10', '80']
     >>> d['age']['cat'] 
     []
+    >>> for column in d:
+    ...   for tag, arg_lst in d[column].items():
+    ...      print(column, tag, arg_lst)
+    age range ['10', '80']
+    age bins ['5']
+    age cat []
     '''
     
     info_dict = collections.OrderedDict()
@@ -91,7 +97,6 @@ def read_info_str(info_str):
 
 
 def transform_features(info_dict, data):
-    
     
     for column in info_dict:
         for tag, arg_lst in info_dict[column].items():
@@ -123,6 +128,18 @@ def transform_features(info_dict, data):
                 data.drop(column, axis=1, inplace=True)
         
     return data
+
+def split(data, target_column, fraction, condition = lambda row: True ):
+    # info_dict = {'country_destination': {'target': }}
+    test_index = data[target_column].isnull()
+    test_data = data.loc[test_index]
+    train_data = data.loc[~test_index]
+    validation_index = train_data.apply(condition, axis = 1)
+    validation_data = train_data.loc[validation_index]
+    validation_data = validation_data.sample(frac = fraction)
+    train_data = train_data.drop(validation_data.index)
+    
+    return test_data, train_data, validation_data
 
 def prepare_data(train_data, test_data, extra_features , info_dict, options):
  

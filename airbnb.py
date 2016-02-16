@@ -29,7 +29,7 @@ info_dict = {'age': {'range': [10,80], 'bins': [5], 'cat': []}, 'age1': {'bins':
 
 info_str = '''id: id
 date_account_created: skip
-timestamp_first_active: date, %Y%m%d%H%M%S, dayofyear
+timestamp_first_active: date, %Y%m%d%H%M%S, dayofyear; skip
 date_first_booking: skip
 gender: cat
 age: range, 10, 80; bins, 5; cat
@@ -67,16 +67,23 @@ def main():
         extra_features = None
         
     info_dict = common.read_info_str(info_str)
-    train_data = pd.read_csv(folder + 'train_users_2.csv', parse_dates= info_dict['date'])
-    test_data = pd.read_csv(folder + 'test_users.csv', parse_dates= info_dict['date'])            
-        
-    X_recent, y_recent, X_test_sessions = common.prepare_data( train_data, test_data, extra_features, info_dict, options)        
-    X_full, y_full, X_test = common.prepare_data(train_data, test_data, None, info_dict, options) 
+    train_data = pd.read_csv(folder + 'train_users_2.csv')
+    test_data = pd.read_csv(folder + 'test_users.csv')  
+    data = pd.concat([train_data, test_data], ignore_index=True)
+    data = common.transform_features(info_dict, data)
     
-    train_indicator = pd.Series(1, index = X_full.index)
-    train_indicator=train_indicator[X_full['timestamp_first_active'].dt.year != 2014 or X_full['timestamp_first_active'].dt.year.month <=3]
-    X_full_train = pd.concat([train_indicator, X_full], axis = 1, join= 'inner')
-    X_full_train = pd.concat([train_indicator, X_full], axis = 1, join= 'inner') # take care of y's
+    test_data, train_data, validation_data = common.split(data, target_column='country_destination', fraction=0.3) 
+    
+    y = train_data['country_destination']
+    X = train_data.drop('country_destination', axis = 1)
+    
+    #X_recent, y_recent, X_test_sessions = common.prepare_data( train_data, test_data, extra_features, info_dict, options)        
+    #X_full, y_full, X_test = common.prepare_data(train_data, test_data, None, info_dict, options) 
+    
+    #train_indicator = pd.Series(1, index = X_full.index)
+    #train_indicator=train_indicator[X_full['timestamp_first_active'].dt.year != 2014 or X_full['timestamp_first_active'].dt.year.month <=3]
+    #X_full_train = pd.concat([train_indicator, X_full], axis = 1, join= 'inner')
+    #X_full_train = pd.concat([train_indicator, X_full], axis = 1, join= 'inner') # take care of y's
     
     if options['scale']:
         scaler = StandardScaler()
@@ -102,6 +109,7 @@ def main():
         'nn': nn,
     }
     learner_lst = [all_learners[learner] for learner in all_learners if options[learner]]
+    
     new_info = common.evaluate_learners(learner_lst, X, y, evaluation_metrics, options)
     print(new_info, file = file)
     common.combine_info(new_info, file_name = 'summary.txt')

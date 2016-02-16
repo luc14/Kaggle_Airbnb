@@ -38,6 +38,20 @@ date_first_booking: skip
 gender: cat
 age: range, 10, 80; bins, 5; cat
 '''
+
+def test_infostr2(capsys):
+    output = common.read_info_str(info_str1)
+    for column in output:
+        for tag, arg_lst in output[column].items():
+            print(column, tag, arg_lst) 
+    out, err = capsys.readouterr()
+    assert out == '''timestamp_first_active date ['%Y%m%d%H%M%S', 'dayofyear']
+date_first_booking skip []
+gender cat []
+age range ['10', '80']
+age bins ['5']
+age cat []
+'''
     
 def test_infostr1():
     output = common.read_info_str(info_str1)
@@ -60,3 +74,6 @@ def generate_test_files():
     #result.to_csv('test_transform_features_1', sep='\t')
 
     
+def condition(row):
+    return row['year'] == 2014
+
