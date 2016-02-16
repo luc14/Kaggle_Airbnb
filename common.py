@@ -106,9 +106,13 @@ def transform_features(info_dict, data):
                 data.drop(column, axis=1, inplace=True)
             
             if tag == 'date':
-                data[column] = pd.to_datetime( data[column], format = arg_lst[0] )
+                date = pd.to_datetime( data[column], format = arg_lst[0] )
                 for arg in arg_lst[1:]:
-                    data[column + '_' + arg] = getattr(data[column].dt, arg)
+                    if arg == 'trend':
+                        #convert date in timestamp into integer
+                        data[column + '_' + arg] = date.astype(np.int64) 
+                        continue
+                    data[column + '_' + arg] = getattr(date.dt, arg)
                 
             # cut data into the range of [min_, max_]
             if tag == 'range':

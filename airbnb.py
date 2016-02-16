@@ -29,7 +29,7 @@ info_dict = {'age': {'range': [10,80], 'bins': [5], 'cat': []}, 'age1': {'bins':
 
 info_str = '''id: id
 date_account_created: skip
-timestamp_first_active: date, %Y%m%d%H%M%S, dayofyear; skip
+timestamp_first_active: date, %Y%m%d%H%M%S, dayofyear
 date_first_booking: skip
 gender: cat
 age: range, 10, 80; bins, 5; cat
@@ -54,7 +54,7 @@ def main():
         
         
     if options['small']:
-        folder = 'airbnb/data/small_'
+        folder = 'airbnb/data/reduced_'
     else:
         folder = 'airbnb/data/'
             
