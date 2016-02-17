@@ -129,7 +129,7 @@ def transform_features(info_dict, data):
             #cut data into (bins_)'s groups
             if tag == 'bins':
                 bins_ = int(arg_lst[0])
-                data[column] = pd.cut(data[column], bins_) 
+                data[column] = pd.cut(data[column], bins_, labels= False) 
             
             #convert data in 'c' into categorical formats     
             if tag == 'cat':

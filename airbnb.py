@@ -66,10 +66,9 @@ def main():
     
     if options['session']:
         sessions = pd.read_csv(folder + 'sessions.csv')
-        #com_lst = ['action', 'action_type', 'action_detail']
-        #sessions['new_feature'] = sessions[com_lst].apply(lambda x: tuple(x), axis=1)
         extra_features = common.prepare_counts(sessions, 'action', 'user_id')
-        data = pd.concat([data, extra_features], axis= 1, join = 'inner')
+        data = pd.concat([data, extra_features], axis= 1, join = 'outer')
+        
         
     data = shuffle(data, random_state = 1)
     X_test, X, y = common.split_test_train_y(data, target_column='country_destination')
@@ -96,13 +95,18 @@ def main():
     }
     learner_lst = [all_learners[learner] for learner in all_learners if options[learner]]
     cv = common.split_validation(X, 0.4)
-    new_info = common.evaluate_learners(learner_lst, X, y, evaluation_metrics, cv, options)
+    new_info = common.evaluate_learners(learner_lst, X, y, evaluation_metrics, cv, options)    
+    changes = open('changes.txt')
+    for line in changes:
+        new_info[line.strip()] = True
     print(new_info, file = file)
     common.add_info_to_file(new_info, file_name = 'summary.txt')
     file.close()
     if options['submission']:
-        submission_file = 'submission'+ file_name        
-        prepare_submission_file(logreg, X_test, file = open(submission_file, 'w'))
+        for learner in all_learners:
+            if options[learner]:
+                submission_file = 'submission_'+ learner + '_' + file_name        
+                prepare_submission_file(all_learners[learner], X_test, file = open(submission_file, 'w'))
 
 
 def prepare_submission_file(learner, X_test, file):
