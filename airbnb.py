@@ -72,16 +72,7 @@ def main():
     data = pd.concat([train_data, test_data], ignore_index=True)
     data = common.transform_features(info_dict, data)
     
-    test_X, X, y = common.split_test_train_y(data, target_column='country_destination')
-    
-    
-    #X_recent, y_recent, X_test_sessions = common.prepare_data( train_data, test_data, extra_features, info_dict, options)        
-    #X_full, y_full, X_test = common.prepare_data(train_data, test_data, None, info_dict, options) 
-    
-    #train_indicator = pd.Series(1, index = X_full.index)
-    #train_indicator=train_indicator[X_full['timestamp_first_active'].dt.year != 2014 or X_full['timestamp_first_active'].dt.year.month <=3]
-    #X_full_train = pd.concat([train_indicator, X_full], axis = 1, join= 'inner')
-    #X_full_train = pd.concat([train_indicator, X_full], axis = 1, join= 'inner') # take care of y's
+    X_test, X, y = common.split_test_train_y(data, target_column='country_destination')
     
     if options['scale']:
         scaler = StandardScaler()
@@ -89,9 +80,7 @@ def main():
         X = pd.DataFrame.from_records(scaler.transform(X), index=X.index, columns= X.columns)    
         X_test = pd.DataFrame.from_records(scaler.transform(X_test), index=X_test.index, columns= X_test.columns)
        
-    logreg = LogisticRegression(random_state=1)
-    #logreg.fit(X, y)
-    
+    logreg = LogisticRegression(random_state=1) 
     dummy = DummyClassifier(strategy= 'prior')
     nn = MLPClassifier()
         
@@ -128,8 +117,6 @@ def prepare_submission_file(learner, X_test, file):
         top_countries  = sorted(countries, key = lambda country: data.loc[user_id,country],reverse=True)[:5]
         for i in range(5):
             print(user_id, top_countries[i], file= file, sep=',')
-            
-
 
 
 if __name__ == '__main__':
