@@ -53,7 +53,7 @@ def evaluate_learners(learner_lst, X, y, evaluation_metrics, cv, options):
     df = df[columns]
     return df
 
-def combine_info(new_info, file_name):
+def add_info_to_file(new_info, file_name):
     try:
         summary = pd.read_csv(file_name, index_col= 0, sep='\t')
     except:

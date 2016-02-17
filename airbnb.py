@@ -85,7 +85,8 @@ def main():
     nn = MLPClassifier()
         
     evaluation_metrics = [('acc', accuracy_scorer), ('logloss', log_loss_scorer), ('ndcg', common.ndcg)]
-    file = common.create_filename('airbnb')
+    file_name = common.create_filename('airbnb')
+    file = open(file_name, 'w')
     print(info_str, file = file)
     print('training data size:', X.shape, file = file)
     print('time:', datetime.datetime.now(), file = file)
@@ -99,11 +100,11 @@ def main():
     cv = common.split_validation(X, 0.4)
     new_info = common.evaluate_learners(learner_lst, X, y, evaluation_metrics, cv, options)
     print(new_info, file = file)
-    common.combine_info(new_info, file_name = 'summary.txt')
+    common.add_info_to_file(new_info, file_name = 'summary.txt')
     file.close()
     if options['submission']:
-        submission_file = common.create_filename('submission')        
-        prepare_submission_file(logreg, X_test, file = submission_file)
+        submission_file = 'submission'+ file_name        
+        prepare_submission_file(logreg, X_test, file = open(submission_file, 'w'))
 
 
 def prepare_submission_file(learner, X_test, file):
