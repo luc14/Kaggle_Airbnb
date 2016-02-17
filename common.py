@@ -182,8 +182,7 @@ def create_filename(prefix):
             max_num = digit
             
     file_name = prefix + str(max_num + 1)+ '_' + file_date + '.txt'
-    file = open(file_name, 'w')
-    return file
+    return file_name
 
 def git_version():
     from subprocess import Popen, PIPE

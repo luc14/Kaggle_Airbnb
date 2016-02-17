@@ -79,10 +79,6 @@ def main():
         scaler.fit(X)
         X = pd.DataFrame.from_records(scaler.transform(X), index=X.index, columns= X.columns)    
         X_test = pd.DataFrame.from_records(scaler.transform(X_test), index=X_test.index, columns= X_test.columns)
-       
-    logreg = LogisticRegression(random_state=1) 
-    dummy = DummyClassifier(strategy= 'prior')
-    nn = MLPClassifier()
         
     evaluation_metrics = [('acc', accuracy_scorer), ('logloss', log_loss_scorer), ('ndcg', common.ndcg)]
     file_name = common.create_filename('airbnb')
@@ -91,10 +87,12 @@ def main():
     print('training data size:', X.shape, file = file)
     print('time:', datetime.datetime.now(), file = file)
     print('arguments:',  sys.argv, file = file)
+
     all_learners = {
-        'dummy':dummy, 
-        'logreg': logreg,
-        'nn': nn,
+        'dummy':DummyClassifier(strategy= 'prior'), 
+        'logreg': LogisticRegression(random_state=1),
+        'nn': MLPClassifier(),
+        'xgb': XGBClassifier(max_depth=6, learning_rate=0.3, n_estimators=25, subsample=0.5, colsample_bytree=0.5,seed=0) 
     }
     learner_lst = [all_learners[learner] for learner in all_learners if options[learner]]
     cv = common.split_validation(X, 0.4)
