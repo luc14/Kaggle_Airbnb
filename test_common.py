@@ -5,7 +5,7 @@ import collections
 
 info_str = '''id: id
 date_account_created: skip
-timestamp_first_active: date, %Y%m%d%H%M%S, dayofyear
+timestamp_first_active: date, %Y%m%d%H%M%S, dayofyear, trend, dayofweek
 date_first_booking: skip
 gender: cat
 age: range, 10, 80; bins, 5; cat
@@ -21,15 +21,18 @@ first_browser: cat
 country_destination: target
 '''    
 def test_transform_features():
-    data = pd.read_csv('tests/reduced_train_users_2.csv')
+    train_filename = 'tests/reduced_train_users_2.csv'
+    data = pd.read_csv(train_filename)
     output = common.transform_features(common.read_info_str(info_str), data)
     #print (result, file = open('test1', 'w'))    
-    expected_output = pd.read_csv('tests/reduced_train_users_2.csv.output', index_col= 'id', sep= '\t', parse_dates= ['timestamp_first_active'])
+    expected_output = pd.read_csv(train_filename + '.expected', index_col= 'id', sep= '\t')
+    output.to_csv(train_filename + '.actual', sep='\t')
     pdt.assert_frame_equal(output, expected_output)
   
 def test_infostr():
     output = str(common.read_info_str(info_str))
-    expected_output = open('tests/info_dict', 'r')
+    print(output, file=open('tests/info_dict.actual', 'w'))
+    expected_output = open('tests/info_dict.expected', 'r')
     expected_output = next(expected_output).strip()
     assert output == expected_output
 
@@ -66,12 +69,14 @@ def test_infostr1():
     assert list(output['age']) == ['range', 'bins', 'cat']
     
 
-def generate_test_files():
-    data = pd.read_csv('airbnb/data/reduced_train_users_2.csv')
-    print(common.read_info_str(info_str), file = open('tests/info_dict1', 'w'))
+#def generate_transform_features_output(train_filename):
+    #data = pd.read_csv(train_filename)
     #result = common.transform_features(common.read_info_str(info_str), data)
-    ##print(result.to_csv(sep='\t'), file = open('test1', 'w'))
-    #result.to_csv('test_transform_features_1', sep='\t')
+    #print(result.to_csv(sep='\t'), file = open(train_filename + '.output.new', 'w'))
+    ##result.to_csv('test_transform_features_1', sep='\t')
+
+#def generate_info_str_output():
+    #print(common.read_info_str(info_str), file = open('tests/info_dict1', 'w'))
 
     
 def condition(row):

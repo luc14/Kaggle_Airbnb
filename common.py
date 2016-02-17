@@ -114,6 +114,7 @@ def transform_features(info_dict, data):
             
             if tag == 'date':
                 date = pd.to_datetime( data[column], format = arg_lst[0] )
+                data.drop(column, axis=1, inplace=True)
                 for arg in arg_lst[1:]:
                     if arg == 'trend':
                         #convert date in timestamp into integer
