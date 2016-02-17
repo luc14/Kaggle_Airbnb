@@ -57,21 +57,21 @@ def main():
         folder = 'airbnb/data/reduced_'
     else:
         folder = 'airbnb/data/'
-            
-    if options['session']:
-        sessions = pd.read_csv(folder + 'sessions.csv')
-        #com_lst = ['action', 'action_type', 'action_detail']
-        #sessions['new_feature'] = sessions[com_lst].apply(lambda x: tuple(x), axis=1)
-        extra_features = common.prepare_counts(sessions, 'action', 'user_id')
-    else:
-        extra_features = None
-        
+                    
     info_dict = common.read_info_str(info_str)
     train_data = pd.read_csv(folder + 'train_users_2.csv')
     test_data = pd.read_csv(folder + 'test_users.csv')  
     data = pd.concat([train_data, test_data], ignore_index=True)
     data = common.transform_features(info_dict, data)
     
+    if options['session']:
+        sessions = pd.read_csv(folder + 'sessions.csv')
+        #com_lst = ['action', 'action_type', 'action_detail']
+        #sessions['new_feature'] = sessions[com_lst].apply(lambda x: tuple(x), axis=1)
+        extra_features = common.prepare_counts(sessions, 'action', 'user_id')
+        data = pd.concat([data, extra_features], axis= 1, join = 'inner')
+        
+    data = shuffle(data, random_state = 1)
     X_test, X, y = common.split_test_train_y(data, target_column='country_destination')
     
     if options['scale']:

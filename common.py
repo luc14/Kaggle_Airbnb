@@ -154,34 +154,6 @@ def split_test_train_y(data, target_column):
     
     return test_X, train_X, train_y
 
-def prepare_data(train_data, test_data, extra_features , info_dict, options):
- 
-    # combine test data and train data
-    data = pd.concat([train_data, test_data], ignore_index=True)
-    
-    # combine extra features together
-    if extra_features is not None:
-        data = pd.concat([data, extra_features], axis= 1, join= 'inner')
-        
-    if options['shuffle']:
-        data = shuffle(data, random_state = 1)
-    else:
-        data = data.sort_values('timestamp_first_active', axis = 0)
-            
-    
-    #store target values in y_train
-    assert len(info_dict['target'])==1
-    y = data[info_dict['target'][0]]
-    y_train = y[~y.isnull()]
-    
-    #store features into X_train and X_test
-    
-    X_train = data[~y.isnull()]
-    X_test = data[y.isnull()]
-    
-    return X_train, y_train, X_test
-
-
 def ndcg(learner, X, y):
     countries = learner.classes_
     prob = learner.predict_proba(X)
