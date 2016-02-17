@@ -5,6 +5,13 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.max_seq_items', None)
 warnings.filterwarnings('ignore')
 
+def split_validation(X, fraction, condition = lambda row: True, random_state = 1):
+    idx = X.apply(condition, axis = 1)
+    idx.index = range(len(X)) # the same as idx.reset_index(drop = True)
+    val_index = pd.DataFrame(idx[idx]).sample(frac = fraction, random_state = random_state).index
+    train_index = idx.index.difference(val_index)
+    return [(train_index, val_index)]
+
 def evaluate(learner, X, y, evaluation_metrics, cv, options):
     if options['parallel']:
         n_jobs = -1
@@ -133,9 +140,7 @@ def transform_features(info_dict, data):
         
     return data
 
-
-#, fraction, condition = lambda row: True 
-def split(data, target_column):
+def split_test_train_y(data, target_column):
     # info_dict = {'country_destination': {'target': }}
     y = data[target_column]
     test_index = y.isnull()

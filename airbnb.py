@@ -72,7 +72,7 @@ def main():
     data = pd.concat([train_data, test_data], ignore_index=True)
     data = common.transform_features(info_dict, data)
     
-    test_X, X, y = common.split(data, target_column='country_destination')
+    test_X, X, y = common.split_test_train_y(data, target_column='country_destination')
     
     
     #X_recent, y_recent, X_test_sessions = common.prepare_data( train_data, test_data, extra_features, info_dict, options)        
@@ -107,8 +107,7 @@ def main():
         'nn': nn,
     }
     learner_lst = [all_learners[learner] for learner in all_learners if options[learner]]
-    
-    cv = 3
+    cv = common.split_validation(X, 0.4)
     new_info = common.evaluate_learners(learner_lst, X, y, evaluation_metrics, cv, options)
     print(new_info, file = file)
     common.combine_info(new_info, file_name = 'summary.txt')
