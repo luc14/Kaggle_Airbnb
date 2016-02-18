@@ -77,9 +77,12 @@ def main():
     cv = common.split_validation(X, 0.4, condition=lambda row: original_data['timestamp_first_active'].dt.year[row.name] == 2014)
     
     new_info = common.evaluate_learners(learner_lst, X, y, evaluation_metrics, cv, options)    
-    changes = open('changes.txt')
-    for line in changes:
-        new_info[line.strip()] = True
+    try:
+        changes = open('changes.txt')
+        for line in changes:
+            new_info[line.strip()] = True
+    except:
+        pass
     print(new_info, file = file)
     common.add_info_to_file(new_info, file_name = 'summary.txt')
     file.close()

@@ -73,17 +73,3 @@ def test_infostr1():
     assert list(output) == ['timestamp_first_active', 'date_first_booking', 'gender', 'age']
     assert list(output['age']) == ['range', 'bins', 'cat']
     
-
-#def generate_transform_features_output(train_filename):
-    #data = pd.read_csv(train_filename)
-    #result = common.transform_features(common.read_info_str(info_str), data)
-    #print(result.to_csv(sep='\t'), file = open(train_filename + '.output.new', 'w'))
-    ##result.to_csv('test_transform_features_1', sep='\t')
-
-#def generate_info_str_output():
-    #print(common.read_info_str(info_str), file = open('tests/info_dict1', 'w'))
-
-    
-def condition(row):
-    return row['year'] == 2014
-
