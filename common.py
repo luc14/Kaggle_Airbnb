@@ -103,24 +103,32 @@ def read_info_str(info_str):
 #info_dict = {'age': {'range': ['10','80'], 'bins': ['5'], 'cat': []}, }
 
 
-def transform_features(info_dict, data):
-    
+# reads index and dates correctly
+def read_file(filename, info_dict):
+    data = pd.read_csv(filename)
     for column in info_dict:
         for tag, arg_lst in info_dict[column].items():
-            
             if tag == 'id':
                 data.index = data[column]
                 data.drop(column, axis=1, inplace=True)
-            
             if tag == 'date':
-                date = pd.to_datetime( data[column], format = arg_lst[0] )
-                data.drop(column, axis=1, inplace=True)
+                data[column] = pd.to_datetime(data[column], format = arg_lst[0])
+    return data
+                
+# will change the input data
+def transform_features(info_dict, data):
+    #data = data.copy()
+    for column in info_dict:
+        for tag, arg_lst in info_dict[column].items():            
+            if tag == 'date':
                 for arg in arg_lst[1:]:
                     if arg == 'trend':
                         #convert date in timestamp into integer
-                        data[column + '_' + arg] = date.astype(np.int64) 
+                        data[column + '_' + arg] = data[column].astype(np.int64) 
                         continue
-                    data[column + '_' + arg] = getattr(date.dt, arg)
+                    data[column + '_' + arg] = getattr(data[column].dt, arg)
+                data.drop(column, axis=1, inplace=True)
+            
                 
             # cut data into the range of [min_, max_]
             if tag == 'range':
@@ -134,12 +142,13 @@ def transform_features(info_dict, data):
             
             #convert data in 'c' into categorical formats     
             if tag == 'cat':
-                data = pd.get_dummies(data, columns = [column], dummy_na = True)
+                data1 = pd.get_dummies(data, columns = [column], dummy_na = True)
+                data.drop(data.columns, inplace=True, axis=1)
+                data[data1.columns] = data1
                 
             if tag == 'skip':
                 data.drop(column, axis=1, inplace=True)
         
-    return data
 
 def split_test_train_y(data, target_column):
     # info_dict = {'country_destination': {'target': }}

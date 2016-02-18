@@ -22,12 +22,17 @@ country_destination: target
 '''    
 def test_transform_features():
     train_filename = 'tests/reduced_train_users_2.csv'
-    data = pd.read_csv(train_filename)
-    output = common.transform_features(common.read_info_str(info_str), data)
+    info_dict = common.read_info_str(info_str)
+    data = common.read_file(train_filename, info_dict) 
+    common.transform_features(info_dict, data)
     #print (result, file = open('test1', 'w'))    
     expected_output = pd.read_csv(train_filename + '.expected', index_col= 'id', sep= '\t')
-    output.to_csv(train_filename + '.actual', sep='\t')
-    pdt.assert_frame_equal(output, expected_output)
+    data.to_csv(train_filename + '.actual', sep='\t')
+    # can compare actual to expected files, but then have to deal with a few technical details
+    # especially annoying is that float numbers may differ in the last decimal digit
+    # assert_frame_equal automatically recognizes that 0.3 and 0.29999999999 are the same
+    # so better to use pdt.assert_* instead of comparing files on disk
+    pdt.assert_frame_equal(data, expected_output)
   
 def test_infostr():
     output = str(common.read_info_str(info_str))

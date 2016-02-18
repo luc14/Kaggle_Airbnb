@@ -5,28 +5,6 @@ import sys
 import common
 from typical_imports import *
 
-
-'''
-age: range, 10, 80; bins, 5; cat
-
-now
-info_dict is a dict of lists of lists
-
-info_dict['range'] = [['age', [10,80]], ['anotherage', [20,30]], 'abc': []]
-
-you can make
-info_dict is a dict of dict with outside keys = tags
-
-info_dict['range'] = {'age': [10,80], 'anotherage': [20,30], 'abc': []}
-
-
-or a dict of dicts with outside keys = columns
-if you use ordereddict, you can choose the order inside info_str
-info_dict = {'age': {'range': [10,80], 'bins': [5], 'cat': []}, 'age1': {'bins': [5], 'range': [10,80], 'cat': []}}
-
-
-'''
-
 info_str = '''id: id
 date_account_created: skip
 timestamp_first_active: date, %Y%m%d%H%M%S, dayofyear
@@ -59,10 +37,11 @@ def main():
         folder = 'airbnb/data/'
                     
     info_dict = common.read_info_str(info_str)
-    train_data = pd.read_csv(folder + 'train_users_2.csv')
-    test_data = pd.read_csv(folder + 'test_users.csv')  
-    data = pd.concat([train_data, test_data], ignore_index=True)
-    data = common.transform_features(info_dict, data)
+    train_data = common.read_file(folder + 'train_users_2.csv', info_dict)
+    test_data = common.read_file(folder + 'test_users.csv', info_dict)  
+    original_data = pd.concat([train_data, test_data], ignore_index=True)
+    data = original_data.copy()
+    common.transform_features(info_dict, data)
     
     if options['session']:
         sessions = pd.read_csv(folder + 'sessions.csv')
@@ -94,7 +73,9 @@ def main():
         'xgb': XGBClassifier(max_depth=6, learning_rate=0.3, n_estimators=25, subsample=0.5, colsample_bytree=0.5,seed=0) 
     }
     learner_lst = [all_learners[learner] for learner in all_learners if options[learner]]
-    cv = common.split_validation(X, 0.4)
+    
+    cv = common.split_validation(X, 0.4, condition=lambda row: original_data['timestamp_first_active'].dt.year[row.name] == 2014)
+    
     new_info = common.evaluate_learners(learner_lst, X, y, evaluation_metrics, cv, options)    
     changes = open('changes.txt')
     for line in changes:
@@ -125,14 +106,3 @@ def prepare_submission_file(learner, X_test, file):
 if __name__ == '__main__':
     main()  
     
-'''
-
-              DummyClassifier  LogisticRegression  MLPClassifier
-accuracymean         0.583473            0.609953       0.531126
-accuracystd          0.000022            0.007191       0.038225
-log_lossmean        -1.163060           -1.116772      -1.389046
-log_lossstd          0.000149            0.019170       0.227440
-ndcgmean             0.806765            0.816308       0.763464
-ndcgstd              0.000027            0.002626       0.007731
-
-'''
