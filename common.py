@@ -5,6 +5,27 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.max_seq_items', None)
 warnings.filterwarnings('ignore')
 
+
+
+class Timer:
+    def __init__(self):
+        self.records = collections.OrderedDict()
+        self.start_time = time.perf_counter()
+    
+    def restart(self):
+        self.start_time = time.perf_counter()
+        
+    def record(self, marker):
+        current_time = time.perf_counter()
+        self.records[marker] = current_time - self.start_time
+        self.start_time = current_time
+
+    def report(self):
+        #self.record('end')
+        
+        for marker in self.records:
+            print(marker, ' takes time: ', self.records[marker])
+    
 def split_validation(X, fraction, condition = lambda row: True, random_state = 1):
     idx = X.apply(condition, axis = 1)
     idx.index = range(len(X)) # the same as idx.reset_index(drop = True)

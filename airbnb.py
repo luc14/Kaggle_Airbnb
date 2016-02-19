@@ -23,6 +23,8 @@ first_browser: cat
 country_destination: target
 '''    
 def main():
+    timer = common.Timer()
+    
     print('starting the program: \n\n')
     
     #options = collections.defaultdict(lambda: False)
@@ -37,27 +39,37 @@ def main():
         folder = 'airbnb/data/'
                     
     info_dict = common.read_info_str(info_str)
+    
     train_data = common.read_file(folder + 'train_users_2.csv', info_dict)
     test_data = common.read_file(folder + 'test_users.csv', info_dict)  
+    
+    timer.record('reading data')
+    
     original_data = pd.concat([train_data, test_data])
     data = original_data.copy()
+
     common.transform_features(info_dict, data)
+    timer.record('transform features')
     
+    #timer.restart()
     if options['session']:
         sessions = pd.read_csv(folder + 'sessions.csv')
         extra_features = common.prepare_counts(sessions, 'action', 'user_id')
         data = pd.concat([data, extra_features], axis= 1, join = 'outer')
-        
-        
+    timer.record('sessions')
+    
     data = shuffle(data, random_state = 1)
     X_test, X, y = common.split_test_train_y(data, target_column='country_destination')
     
+ 
+    #timer.restart()
     if options['scale']:
         scaler = StandardScaler()
         scaler.fit(X)
         X = pd.DataFrame.from_records(scaler.transform(X), index=X.index, columns= X.columns)    
         X_test = pd.DataFrame.from_records(scaler.transform(X_test), index=X_test.index, columns= X_test.columns)
-        
+    timer.record('shuffle split and scale')
+    
     evaluation_metrics = [('acc', accuracy_scorer), ('logloss', log_loss_scorer), ('ndcg', common.ndcg)]
     file_name = common.create_filename('airbnb')
     file = open(file_name, 'w')
@@ -77,6 +89,8 @@ def main():
     cv = common.split_validation(X, 0.4, condition=lambda row: original_data['timestamp_first_active'].dt.year[row.name] == 2014)
     
     new_info = common.evaluate_learners(learner_lst, X, y, evaluation_metrics, cv, options)    
+    timer.record('train')
+
     try:
         changes = open('changes.txt')
         for line in changes:
@@ -92,8 +106,14 @@ def main():
     if options['submission']:
         for learner in all_learners:
             if options[learner]:
+                all_learners[learner].fit(X, y)
                 submission_file = 'submission_'+ learner + '_' + file_name        
                 prepare_submission_file(all_learners[learner], X_test, file = open(submission_file, 'w'))
+                timer.record('submission ' + learner)
+                
+                
+    timer.report()
+
 
 
 def prepare_submission_file(learner, X_test, file):
