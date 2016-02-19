@@ -39,7 +39,7 @@ def main():
     info_dict = common.read_info_str(info_str)
     train_data = common.read_file(folder + 'train_users_2.csv', info_dict)
     test_data = common.read_file(folder + 'test_users.csv', info_dict)  
-    original_data = pd.concat([train_data, test_data], ignore_index=True)
+    original_data = pd.concat([train_data, test_data])
     data = original_data.copy()
     common.transform_features(info_dict, data)
     
@@ -80,7 +80,10 @@ def main():
     try:
         changes = open('changes.txt')
         for line in changes:
-            new_info[line.strip()] = True
+            line = line.strip()
+            if not line:
+                continue
+            new_info[line] = True
     except:
         pass
     print(new_info, file = file)

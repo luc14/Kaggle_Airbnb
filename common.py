@@ -12,20 +12,15 @@ def split_validation(X, fraction, condition = lambda row: True, random_state = 1
     train_index = idx.index.difference(val_index)
     return [(train_index, val_index)]
 
-def evaluate(learner, X, y, evaluation_metrics, cv, options):
-    if options['parallel']:
-        n_jobs = -1
-    else:
-        n_jobs = 1
+def evaluate(learner, X, y, evaluation_metrics, cv_split, options):
     print(learner, flush=True)
     learner.fit(X, y)
 #    try:
     result = {}
     for name, metric in evaluation_metrics:
-        if not options['nocv']:
-            score = cross_val_score(learner, X, y, scoring=metric, cv=cv, n_jobs= n_jobs)
-            result[name + ' cv mean'] = score.mean()
-            result[name + ' cv std'] = score.std()
+        score = cross_val_score(learner, X, y, scoring=metric, cv=cv_split)
+        result[name + ' cv mean'] = score.mean()
+        result[name + ' cv std'] = score.std()
         result[name + ' train'] = metric(learner, X, y)
 #except Exception as e:
         #print(traceback.format_exc())
