@@ -10,29 +10,28 @@ def split_validation(X, fraction, condition = lambda row: True, random_state = 1
     idx.index = range(len(X)) # the same as idx.reset_index(drop = True)
     val_index = pd.DataFrame(idx[idx]).sample(frac = fraction, random_state = random_state).index
     train_index = idx.index.difference(val_index)
-    return [(train_index, val_index)]
+    return [[train_index, val_index]]
 
-def evaluate(learner, X, y, evaluation_metrics, cv_split, options):
+def evaluate(learner, X, y, evaluation_metrics, split):
+    learner = clone(learner)
     print(learner, flush=True)
-    learner.fit(X, y)
-#    try:
     result = {}
-    for name, metric in evaluation_metrics:
-        score = cross_val_score(learner, X, y, scoring=metric, cv=cv_split)
-        result[name + ' cv mean'] = score.mean()
-        result[name + ' cv std'] = score.std()
-        result[name + ' train'] = metric(learner, X, y)
-#except Exception as e:
-        #print(traceback.format_exc())
-        #print(learner, 'failed')
-    #results_df = pd.DataFrame(results)
+    records = collections.defaultdict(list)
+    for train_index, val_index in split:
+        learner.fit(X.iloc[train_index], y.iloc[train_index])
+        for name, metric in evaluation_metrics:
+            records[name + '_val'].append(metric(learner, X.iloc[val_index], y.iloc[val_index]))
+            records[name + '_train'].append(metric(learner, X.iloc[train_index], y.iloc[train_index]))  
+    for record_name in records:    
+        result[record_name + '_mean'] = pd.Series(records[record_name]).mean() 
+        result[record_name + '_std'] = pd.Series(records[record_name]).std()    
     return result #dict
 
 def evaluate_learners(learner_lst, X, y, evaluation_metrics, cv, options):
     records = []
     column_order = collections.defaultdict(lambda: 100)    
     for learner in learner_lst:
-        record = evaluate(learner, X, y, evaluation_metrics, cv, options)
+        record = evaluate(learner, X, y, evaluation_metrics, cv)
         for key in record:
             column_order[key] = 1 
         record.update(options) 

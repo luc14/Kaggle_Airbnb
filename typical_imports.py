@@ -19,3 +19,4 @@ from sklearn.utils import shuffle
 import math, platform, time, warnings, os, traceback, sys, datetime, collections, argparse, io, random, os, re, pprint
 #from multiprocessing import Pool
 from patsy import dmatrix
+from sklearn.base import clone
