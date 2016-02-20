@@ -11,6 +11,7 @@ class Timer:
     def __init__(self):
         self.records = collections.OrderedDict()
         self.start_time = time.perf_counter()
+        self.start = self.start_time
     
     def restart(self):
         self.start_time = time.perf_counter()
@@ -25,9 +26,11 @@ class Timer:
         
         for marker in self.records:
             print(marker, ' takes time: ', self.records[marker])
+        print('total time: ', time.perf_counter() - self.start)
     
 def split_validation(X, fraction, condition = lambda row: True, random_state = 1):
     idx = X.apply(condition, axis = 1)
+    
     idx.index = range(len(X)) # the same as idx.reset_index(drop = True)
     val_index = pd.DataFrame(idx[idx]).sample(frac = fraction, random_state = random_state).index
     train_index = idx.index.difference(val_index)
