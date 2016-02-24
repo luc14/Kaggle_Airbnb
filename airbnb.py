@@ -5,31 +5,15 @@ import sys
 import common
 from typical_imports import *
 
-info_str = '''id: id
-date_account_created: skip
-timestamp_first_active: date, %Y%m%d%H%M%S, dayofyear
-date_first_booking: skip
-gender: cat
-age: range, 10, 80; bins, 5; cat
-signup_method: cat
-signup_flow: cat
-language: cat
-affiliate_channel: cat
-affiliate_provider: cat
-first_affiliate_tracked: cat
-signup_app: cat
-first_device_type: cat
-first_browser: cat
-country_destination: target
-'''    
-def main():
+
+def main(info_str, args):
     timer = common.Timer()
     
     print('starting the program: \n\n')
     
     #options = collections.defaultdict(lambda: False)
     options = collections.defaultdict(bool)
-    for arg in sys.argv[1:]:
+    for arg in args:
         options[arg] = True
         
         
@@ -37,7 +21,7 @@ def main():
         folder = 'airbnb/data/reduced_'
     else:
         folder = 'airbnb/data/'
-                    
+                 
     info_dict = common.read_info_str(info_str)
     
     train_data = common.read_file(folder + 'train_users_2.csv', info_dict)
@@ -71,8 +55,14 @@ def main():
     timer.record('shuffle split and scale')
     
     evaluation_metrics = [('acc', accuracy_scorer), ('logloss', log_loss_scorer), ('ndcg', common.ndcg)]
-    file_name = common.create_filename('airbnb')
-    file = open(file_name, 'w')
+    
+    
+    if options['test']:
+        output_folder = 'tests/outputs/'
+    else:
+        output_folder = './'
+    file_name = common.create_filename('airbnb', output_folder)
+    file = open(output_folder + file_name, 'w')
     print(info_str, file = file)
     print('training data size:', X.shape, file = file)
     print('time:', datetime.datetime.now(), file = file)
@@ -101,13 +91,13 @@ def main():
     except:
         pass
     print(new_info, file = file)
-    common.add_info_to_file(new_info, file_name = 'summary.txt')
+    common.add_info_to_file(new_info, file_name = output_folder + 'summary.txt')
     file.close()
     if options['submission']:
         for learner in all_learners:
             if options[learner]:
                 all_learners[learner].fit(X, y)
-                submission_file = 'submission_'+ learner + '_' + file_name        
+                submission_file = output_folder + 'submission_'+ learner + '_' + file_name        
                 prepare_submission_file(all_learners[learner], X_test, file = open(submission_file, 'w'))
                 timer.record('submission ' + learner)
                 
@@ -130,5 +120,6 @@ def prepare_submission_file(learner, X_test, file):
 
 
 if __name__ == '__main__':
-    main()  
+    info_str = open('info_str.txt', 'r').read()
+    main(info_str, sys.argv[1:])  
     

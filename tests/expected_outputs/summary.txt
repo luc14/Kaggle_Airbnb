@@ -1,0 +1,3 @@
+	learner	acc_train_mean	acc_train_std	acc_val_mean	acc_val_std	logloss_train_mean	logloss_train_std	logloss_val_mean	logloss_val_std	ndcg_train_mean	ndcg_train_std	ndcg_val_mean	ndcg_val_std	dummy	logreg	nn	scale	session	small	submission	test	xgb	base_score	colsample_bylevel	colsample_bytree	gamma	learning_rate	max_delta_step	max_depth	min_child_weight	missing	n_estimators	nthread	objective	reg_alpha	reg_lambda	scale_pos_weight	seed	silent	subsample	switched from intersection to union
+0	XGBClassifier	0.7710914454277286		0.7028985507246377		-0.5517996981267469		-0.7893097922070951		0.9103685091135841		0.87992928193758		False	False	False	False	True	True	True	True	True	0.5	1	0.5	0	0.3	0	6	1		25	-1	binary:logistic	0	1	1	0	True	0.5	True
+

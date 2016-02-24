@@ -196,10 +196,10 @@ def ndcg(learner, X, y):
     return ave 
 
     
-def create_filename(prefix):    
+def create_filename(prefix, output_folder):   
     now = datetime.datetime.now()
     file_date = now.strftime('%Y%m%d%H%M%S')
-    lst_names = os.listdir()
+    lst_names = os.listdir(output_folder)  # returns all the names of files in output_folder
     max_num = 0
     for name in lst_names:
         name_digit = re.search('^' +prefix + r'(\d+)_.*\.txt$', name)

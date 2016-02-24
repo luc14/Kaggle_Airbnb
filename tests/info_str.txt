@@ -1,0 +1,16 @@
+id: id
+date_account_created: skip
+timestamp_first_active: date, %Y%m%d%H%M%S, dayofyear
+date_first_booking: skip
+gender: cat
+age: range, 10, 80; bins, 5; cat
+signup_method: cat
+signup_flow: cat
+language: cat
+affiliate_channel: cat
+affiliate_provider: cat
+first_affiliate_tracked: cat
+signup_app: cat
+first_device_type: cat
+first_browser: cat
+country_destination: target
