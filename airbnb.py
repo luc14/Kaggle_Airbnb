@@ -29,9 +29,11 @@ def main(info_str, args):
     
     timer.record('reading data')
     
+    # raw data with date converted from str, and with user_id index
     original_data = pd.concat([train_data, test_data])
     data = original_data.copy()
-
+    
+    #data is tranformed
     common.transform_features(info_dict, data)
     timer.record('transform features')
     
@@ -76,7 +78,17 @@ def main(info_str, args):
     }
     learner_lst = [all_learners[learner] for learner in all_learners if options[learner]]
     
-    cv = common.split_validation(X, 0.4, condition=lambda row: original_data['timestamp_first_active'].dt.year[row.name] == 2014)
+    # idx: a series of [user_id: True / False]
+    idx = train_data['timestamp_first_active'].dt.year == 2014
+    # match idx's index with X's index
+    idx = idx.loc[X.index]
+    # change idx's index into iloc index
+    idx.index = range(len(X))
+    val_idx = pd.DataFrame(idx[idx]).sample(frac = 0.4, random_state = 1).index
+    train_idx = idx.index.difference(val_idx)
+    cv = [[train_idx, val_idx]]
+    
+    #cv = common.split_validation(X, 0.4, condition=lambda row: original_data['timestamp_first_active'].dt.year[row.name] == 2014)
     
     new_info = common.evaluate_learners(learner_lst, X, y, evaluation_metrics, cv, options)    
     timer.record('train')

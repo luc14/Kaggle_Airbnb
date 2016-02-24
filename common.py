@@ -27,7 +27,8 @@ class Timer:
         for marker in self.records:
             print(marker, ' takes time: ', self.records[marker])
         print('total time: ', time.perf_counter() - self.start)
-    
+
+# scikit-learn expects train_index and val_index to be arrays with iloc indexes     
 def split_validation(X, fraction, condition = lambda row: True, random_state = 1):
     idx = X.apply(condition, axis = 1)
     
