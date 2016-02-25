@@ -6,26 +6,28 @@ import common
 from typical_imports import *
 
 
-def main(info_str, args):
+def main(info_str, args=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input_folder', default='airbnb/data/')
+    parser.add_argument('--session', action = 'store_true')
+    parser.add_argument('--scale', action = 'store_true')
+    parser.add_argument('--output_folder', default='./')
+    parser.add_argument('--submission', action = 'store_true')
+    parser.add_argument('--learners', nargs='*')
+    
+    
+    
+    options = vars(parser.parse_args(args))
+    
     timer = common.Timer()
-    
     print('starting the program: \n\n')
-    
-    #options = collections.defaultdict(lambda: False)
-    options = collections.defaultdict(bool)
-    for arg in args:
-        options[arg] = True
-        
-        
-    if options['small']:
-        folder = 'airbnb/data/reduced_'
-    else:
-        folder = 'airbnb/data/'
+   
+    input_folder = options['input_folder']
                  
     info_dict = common.read_info_str(info_str)
     
-    train_data = common.read_file(folder + 'train_users_2.csv', info_dict)
-    test_data = common.read_file(folder + 'test_users.csv', info_dict)  
+    train_data = common.read_file(input_folder + 'train_users_2.csv', info_dict)
+    test_data = common.read_file(input_folder + 'test_users.csv', info_dict)  
     
     timer.record('reading data')
     
@@ -39,7 +41,7 @@ def main(info_str, args):
     
     #timer.restart()
     if options['session']:
-        sessions = pd.read_csv(folder + 'sessions.csv')
+        sessions = pd.read_csv(input_folder + 'sessions.csv')
         extra_features = common.prepare_counts(sessions, 'action', 'user_id')
         data = pd.concat([data, extra_features], axis= 1, join = 'outer')
     timer.record('sessions')
@@ -59,10 +61,7 @@ def main(info_str, args):
     evaluation_metrics = [('acc', accuracy_scorer), ('logloss', log_loss_scorer), ('ndcg', common.ndcg)]
     
     
-    if options['test']:
-        output_folder = 'tests/outputs/'
-    else:
-        output_folder = './'
+    output_folder = options['output_folder']
     file_name = common.create_filename('airbnb', output_folder)
     file = open(output_folder + file_name, 'w')
     print(info_str, file = file)
@@ -76,7 +75,7 @@ def main(info_str, args):
         'nn': MLPClassifier(),
         'xgb': XGBClassifier(max_depth=6, learning_rate=0.3, n_estimators=25, subsample=0.5, colsample_bytree=0.5,seed=0) 
     }
-    learner_lst = [all_learners[learner] for learner in all_learners if options[learner]]
+    learner_lst = [all_learners[learner] for learner in options['learners']]
     
     # idx: a series of [user_id: True / False]
     idx = train_data['timestamp_first_active'].dt.year == 2014
@@ -94,7 +93,7 @@ def main(info_str, args):
     timer.record('train')
 
     try:
-        changes = open('changes.txt')
+        changes = open(input_folder + 'changes.txt')
         for line in changes:
             line = line.strip()
             if not line:
@@ -106,12 +105,11 @@ def main(info_str, args):
     common.add_info_to_file(new_info, file_name = output_folder + 'summary.txt')
     file.close()
     if options['submission']:
-        for learner in all_learners:
-            if options[learner]:
-                all_learners[learner].fit(X, y)
-                submission_file = output_folder + 'submission_'+ learner + '_' + file_name        
-                prepare_submission_file(all_learners[learner], X_test, file = open(submission_file, 'w'))
-                timer.record('submission ' + learner)
+        for learner in options['learners']:
+            all_learners[learner].fit(X, y)
+            submission_file = output_folder + 'submission_'+ learner + '_' + file_name        
+            prepare_submission_file(all_learners[learner], X_test, file = open(submission_file, 'w'))
+            timer.record('submission ' + learner)
                 
                 
     timer.report()
@@ -133,5 +131,5 @@ def prepare_submission_file(learner, X_test, file):
 
 if __name__ == '__main__':
     info_str = open('info_str.txt', 'r').read()
-    main(info_str, sys.argv[1:])  
+    main(info_str)  
     

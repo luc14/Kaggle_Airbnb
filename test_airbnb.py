@@ -20,7 +20,7 @@ def test_airbnb():
         pass
         
     info_str = open('tests/info_str.txt', 'r').read()
-    airbnb.main(info_str, ['small', 'xgb', 'session', 'submission', 'test'])
+    airbnb.main(info_str, ['--learners', 'xgb', '--session', '--submission', '--input_folder', 'tests/', '--output_folder', 'tests/outputs/'])
     expected_output_files = sorted(os.listdir(expected_output_folder))
     output_files = sorted(os.listdir(output_folder))
     for output_file, expected_output_file in zip(output_files, expected_output_files):

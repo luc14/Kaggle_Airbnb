@@ -21,7 +21,7 @@ first_browser: cat
 country_destination: target
 '''    
 def test_transform_features():
-    train_filename = 'tests/reduced_train_users_2.csv'
+    train_filename = 'tests/train_users_2.csv'
     info_dict = common.read_info_str(info_str)
     data = common.read_file(train_filename, info_dict) 
     common.transform_features(info_dict, data)
