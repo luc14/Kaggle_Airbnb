@@ -6,7 +6,7 @@ import common
 from typical_imports import *
 
 
-def main(info_str, args=None):
+def main(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_folder', default='airbnb/data/')
     parser.add_argument('--session', action = 'store_true')
@@ -14,10 +14,12 @@ def main(info_str, args=None):
     parser.add_argument('--output_folder', default='./')
     parser.add_argument('--submission', action = 'store_true')
     parser.add_argument('--learners', nargs='*')
-    
+    parser.add_argument('--age_na', choices = ['mean'])
+    parser.add_argument('--info_str', default = 'info_str.txt')
     
     
     options = vars(parser.parse_args(args))
+    info_str = open(options['info_str'], 'r').read()       
     
     timer = common.Timer()
     print('starting the program: \n\n')
@@ -38,7 +40,12 @@ def main(info_str, args=None):
     #data is tranformed
     common.transform_features(info_dict, data)
     timer.record('transform features')
-    
+
+    if options['age_na'] == 'mean':
+        #data['age'][data['age'].isnull()] = data['age'].mean() 
+        data.loc[data['age'].isnull(), 'age'] = data['age'].mean()
+        
+        
     #timer.restart()
     if options['session']:
         sessions = pd.read_csv(input_folder + 'sessions.csv')
@@ -130,6 +137,5 @@ def prepare_submission_file(learner, X_test, file):
 
 
 if __name__ == '__main__':
-    info_str = open('info_str.txt', 'r').read()
-    main(info_str)  
+    main()
     
