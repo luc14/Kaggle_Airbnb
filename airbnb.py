@@ -37,14 +37,13 @@ def main(args=None):
     original_data = pd.concat([train_data, test_data])
     data = original_data.copy()
     
+    if options['age_na'] == 'mean':
+        #data['age'][data['age'].isnull()] = data['age'].mean() 
+        data.loc[data['age'].isnull(), 'age'] = data['age'].mean()    
+    
     #data is tranformed
     common.transform_features(info_dict, data)
     timer.record('transform features')
-
-    if options['age_na'] == 'mean':
-        #data['age'][data['age'].isnull()] = data['age'].mean() 
-        data.loc[data['age'].isnull(), 'age'] = data['age'].mean()
-        
         
     #timer.restart()
     if options['session']:

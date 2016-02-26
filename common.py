@@ -188,10 +188,12 @@ def ndcg(learner, X, y):
     prob = learner.predict_proba(X)
     data = pd.DataFrame(prob, index=X.index, columns = countries) 
     score = 0
+    top_countries = data.apply(lambda row: sorted(countries, key = lambda country: -row[country])[:5], axis=1)
+    
     for user_id in data.index:
-        top_countries  = sorted(countries, key = lambda country: data.loc[user_id,country],reverse=True)[:5]   
+        #top_countries  = sorted(countries, key = lambda country: data.loc[user_id,country],reverse=True)[:5]   
         for i in range(5):
-            if top_countries[i] == y.loc[user_id]:
+            if top_countries[user_id][i] == y.loc[user_id]:
                 score += 1/(math.log2(i+2))
     ave = score/len(y)           
     return ave 
