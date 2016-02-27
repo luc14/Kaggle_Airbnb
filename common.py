@@ -199,20 +199,22 @@ def ndcg(learner, X, y):
     return ave 
 
     
-def create_filename(prefix, output_folder):   
+def create_filename(prefix, output_folder, num = None):   
     now = datetime.datetime.now()
     file_date = now.strftime('%Y%m%d%H%M%S')
-    lst_names = os.listdir(output_folder)  # returns all the names of files in output_folder
-    max_num = 0
-    for name in lst_names:
-        name_digit = re.search('^' +prefix + r'(\d+)_.*\.txt$', name)
-        if name_digit is None:
-            continue
-        digit = int(name_digit.group(1))
-        if digit > max_num:
-            max_num = digit
-            
-    file_name = prefix + str(max_num + 1)+ '_' + file_date + '.txt'
+    if num is None:
+        lst_names = os.listdir(output_folder)  # returns all the names of files in output_folder
+        num = 0
+        for name in lst_names:
+            name_digit = re.search('^' +prefix + r'(\d+)_.*\.txt$', name)
+            if name_digit is None:
+                continue
+            digit = int(name_digit.group(1))
+            if digit > num:
+                num = digit
+        num += 1
+                
+    file_name = prefix + str(num)+ '_' + file_date + '.txt'
     return file_name
 
 def git_version():

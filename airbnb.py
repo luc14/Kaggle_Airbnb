@@ -5,6 +5,14 @@ import sys
 import common
 from typical_imports import *
 
+version = '1.0'
+
+'''
+changes:
+
+'''
+
+
 
 def main(args=None):
     parser = argparse.ArgumentParser()
@@ -16,6 +24,8 @@ def main(args=None):
     parser.add_argument('--learners', nargs='*')
     parser.add_argument('--age_na', choices = ['mean'])
     parser.add_argument('--info_str', default = 'info_str.txt')
+    parser.add_argument('--join_sessions', default = 'outer')
+    parser.add_argument('--id')
     
     
     options = vars(parser.parse_args(args))
@@ -49,7 +59,7 @@ def main(args=None):
     if options['session']:
         sessions = pd.read_csv(input_folder + 'sessions.csv')
         extra_features = common.prepare_counts(sessions, 'action', 'user_id')
-        data = pd.concat([data, extra_features], axis= 1, join = 'outer')
+        data = pd.concat([data, extra_features], axis= 1, join = options['join_sessions'])
     timer.record('sessions')
     
     data = shuffle(data, random_state = 1)
@@ -68,7 +78,7 @@ def main(args=None):
     
     
     output_folder = options['output_folder']
-    file_name = common.create_filename('airbnb', output_folder)
+    file_name = common.create_filename('airbnb', output_folder, options['id'])
     file = open(output_folder + file_name, 'w')
     print(info_str, file = file)
     print('training data size:', X.shape, file = file)
@@ -95,18 +105,14 @@ def main(args=None):
     
     #cv = common.split_validation(X, 0.4, condition=lambda row: original_data['timestamp_first_active'].dt.year[row.name] == 2014)
     
+    #new_info is a dictionary
     new_info = common.evaluate_learners(learner_lst, X, y, evaluation_metrics, cv, options)    
     timer.record('train')
 
-    try:
-        changes = open(input_folder + 'changes.txt')
-        for line in changes:
-            line = line.strip()
-            if not line:
-                continue
-            new_info[line] = True
-    except:
-        pass
+    
+    new_info['version'] = version
+    new_info['filename'] = file_name
+    new_info['training rows'], new_info['training columns'] = X.shape
     print(new_info, file = file)
     common.add_info_to_file(new_info, file_name = output_folder + 'summary.txt')
     file.close()
