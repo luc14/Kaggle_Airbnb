@@ -111,7 +111,7 @@ def main(args=None):
 
     
     new_info['version'] = version
-    new_info['filename'] = file_name
+    #new_info['filename'] = file_name
     new_info['training rows'], new_info['training columns'] = X.shape
     print(new_info, file = file)
     common.add_info_to_file(new_info, file_name = output_folder + 'summary.txt')
